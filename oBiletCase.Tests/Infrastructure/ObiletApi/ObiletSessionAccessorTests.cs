@@ -8,10 +8,6 @@ using oBiletCase.Tests.TestSupport;
 
 namespace oBiletCase.Tests.Infrastructure.ObiletApi;
 
-/// <summary>
-/// <see cref="ObiletSessionAccessor"/>'ın gerçek Obilet API'sine bağımlı
-/// olmadan, sahte bir HTTP handler üzerinden doğrulanan testleri.
-/// </summary>
 public class ObiletSessionAccessorTests
 {
     private static HttpResponseMessage JsonResponse(string json) => new(HttpStatusCode.OK)
@@ -41,10 +37,7 @@ public class ObiletSessionAccessorTests
     [Fact]
     public async Task GetOrCreateSessionAsync_istek_govdesi_canli_apiye_karsi_dogrulanmis_semayla_birebir_esler()
     {
-        // Bu şema 2026-09-20'de gerçek Obilet API'sine karşı curl ile doğrulanmıştır
-        // (bkz. GetSessionRequestDto.cs remarks). docs/ altındaki PDF'in örneği
-        // canlı API tarafından reddedilir; burada PDF değil, gerçekte çalışan
-        // gövde regresyona karşı sabitlenir.
+
         HttpRequestMessage? capturedRequest = null;
         string? capturedBody = null;
         var handler = new StubHttpMessageHandler((request, ct) =>
@@ -62,7 +55,7 @@ public class ObiletSessionAccessorTests
         Assert.Contains("\"connection\":{\"ip-address\":", capturedBody);
         Assert.Contains("\"port\":\"0\"", capturedBody);
         Assert.Contains("\"browser\":{\"name\":", capturedBody);
-        Assert.DoesNotContain("\"application\":", capturedBody); // PDF'teki eski şemadan kalma alan olmamalı
+        Assert.DoesNotContain("\"application\":", capturedBody);
     }
 
     [Fact]
@@ -82,7 +75,7 @@ public class ObiletSessionAccessorTests
         var second = await accessor.GetOrCreateSessionAsync("user-1", CancellationToken.None);
 
         Assert.Equal(first, second);
-        Assert.Equal(1, callCount); // ikinci çağrı API'ye gitmemeli, cache'ten dönmeli
+        Assert.Equal(1, callCount); 
     }
 
     [Fact]
@@ -102,7 +95,7 @@ public class ObiletSessionAccessorTests
         var user2Session = await accessor.GetOrCreateSessionAsync("user-2", CancellationToken.None);
 
         Assert.NotEqual(user1Session.SessionId, user2Session.SessionId);
-        Assert.Equal(2, callCount); // farklı kullanıcılar ayrı ayrı API'ye gitmeli
+        Assert.Equal(2, callCount); 
     }
 
     [Fact]

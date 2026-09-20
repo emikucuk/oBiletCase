@@ -1,6 +1,5 @@
 namespace oBiletCase.Web.AppUser;
 
-/// <inheritdoc cref="IAppUserContext"/>
 public sealed class AppUserContext(IHttpContextAccessor httpContextAccessor) : IAppUserContext
 {
     public string AppUserId
@@ -13,7 +12,7 @@ public sealed class AppUserContext(IHttpContextAccessor httpContextAccessor) : I
             if (httpContext.Items[AppUserIdentity.HttpContextItemsKey] is not string appUserId)
             {
                 throw new InvalidOperationException(
-                    $"{nameof(AppUserIdentityMiddleware)} pipeline'a eklenmemiş görünüyor.");
+                    $"{nameof(AppUserIdentityMiddleware)} middleware'i eklenmemiş görünüyor.");
             }
 
             return appUserId;

@@ -1,11 +1,6 @@
 namespace oBiletCase.Web.AppUser;
 
-/// <summary>
-/// Her istekte, uygulamanın kendi kullanıcı tanımlama cookie'sinin var
-/// olduğundan emin olur; yoksa oluşturur. Bu kimlik, Obilet session'ını
-/// kullanıcı bazında ilişkilendirmek için kullanılır (bkz.
-/// <see cref="AppUserIdentity"/>).
-/// </summary>
+
 public sealed class AppUserIdentityMiddleware(RequestDelegate next)
 {
     private static readonly TimeSpan CookieLifetime = TimeSpan.FromDays(365);

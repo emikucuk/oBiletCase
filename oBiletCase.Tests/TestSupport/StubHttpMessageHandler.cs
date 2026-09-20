@@ -1,9 +1,6 @@
 namespace oBiletCase.Tests.TestSupport;
 
-/// <summary>
-/// Gerçek ağ çağrısı yapmadan HttpClient testleri yazabilmek için kullanılan
-/// sahte (fake) HttpMessageHandler. Her istek, verilen delegate'e devredilir.
-/// </summary>
+/// Gerçek ağ çağrısı yapmadan HttpClient testleri yazabilmek için kullanılan sahte (fake) HttpMessageHandler. Her istek, verilen delegate'e devredilir.
 public sealed class StubHttpMessageHandler(
     Func<HttpRequestMessage, CancellationToken, HttpResponseMessage> responder)
     : HttpMessageHandler

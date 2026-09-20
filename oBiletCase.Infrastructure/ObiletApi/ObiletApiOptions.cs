@@ -23,12 +23,6 @@ public sealed class oBiletAPIOptions
     [Range(1, 120)]
     public int TimeoutSeconds { get; set; } = 30;
 
-    /// <summary>
-    /// GetSession isteğinde "connection.ip-address" alanına konulacak
-    /// değer (API dokümanına göre "your server's outbound Ip address").
-    /// Boş bırakılırsa <see cref="DefaultOutboundIpAddress"/> kullanılır;
-    /// bu, gerçek dağıtım ortamında ayarlanmalıdır.
-    /// </summary>
     public string? OutboundIpAddress { get; set; }
 
     public const string DefaultOutboundIpAddress = "127.0.0.1";

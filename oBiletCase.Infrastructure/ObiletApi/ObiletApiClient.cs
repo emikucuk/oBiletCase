@@ -5,13 +5,7 @@ using oBiletCase.Infrastructure.oBiletAPI.Contracts;
 
 namespace oBiletCase.Infrastructure.oBiletAPI;
 
-/// <summary>
-/// obilet.com Business API'sine ham HTTP çağrılarını yapan istemci.
-/// Yalnızca Infrastructure içinde tüketilir; Application bu sınıfı bilmez,
-/// yalnızca ilgili feature'ların (ör. Sessions) tanımladığı sözleşmeleri
-/// görür. İstek/yanıt içerikleri (session-id, device-id, token) asla
-/// loglanmaz; yalnızca HTTP durum kodu ve status alanı loglanır.
-/// </summary>
+
 internal sealed class ObiletApiClient
 {
     private readonly IHttpClientFactory _httpClientFactory;
