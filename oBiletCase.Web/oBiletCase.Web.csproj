@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\oBiletCase.Application\oBiletCase.Application.csproj" />
+    <ProjectReference Include="..\oBiletCase.Infrastructure\oBiletCase.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>c24de0b5-c097-4b33-88b7-c136ddec97b7</UserSecretsId>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,36 @@
+# Build results
+bin/
+obj/
+out/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Rider / VS Code
+.idea/
+.vscode/
+
+# Test results
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+
+# NuGet
+*.nupkg
+project.lock.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# docs 
+docs/
+
+# Project notes 
+AGENTS.md
+CLAUDE.md
+README.md
+

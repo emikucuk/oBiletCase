@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="oBiletCase.Application/oBiletCase.Application.csproj" />
+  <Project Path="oBiletCase.Domain/oBiletCase.Domain.csproj" />
+  <Project Path="oBiletCase.Infrastructure/oBiletCase.Infrastructure.csproj" />
+  <Project Path="oBiletCase.Tests/oBiletCase.Tests.csproj" />
+  <Project Path="oBiletCase.Web/oBiletCase.Web.csproj" />
+</Solution>
