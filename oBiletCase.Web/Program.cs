@@ -1,7 +1,13 @@
+using oBiletCase.Infrastructure;
+using oBiletCase.Web.AppUser;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAppUserContext, AppUserContext>();
 
 var app = builder.Build();
 
@@ -14,6 +20,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<AppUserIdentityMiddleware>();
 app.UseRouting();
 
 app.UseAuthorization();
