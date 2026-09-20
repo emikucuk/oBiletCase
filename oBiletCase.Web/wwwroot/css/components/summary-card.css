@@ -1,0 +1,119 @@
+.summary-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-xl);
+  display: grid;
+  justify-items: start;
+  gap: var(--space-lg);
+}
+
+.summary-card .route,
+.summary-card .route-meta {
+  width: 100%;
+}
+
+.summary-card__kicker {
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-info-soft);
+  color: var(--color-info);
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.summary-card h1 {
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  margin: 0;
+}
+
+.summary-card__lede {
+  color: var(--color-text-muted);
+}
+
+.route {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: var(--space-md);
+  align-items: center;
+  padding: var(--space-lg);
+  border-radius: 22px;
+  background: var(--color-surface-muted);
+}
+
+.route__point dt {
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.route__point dd {
+  margin: 0.2rem 0 0;
+  font-size: 1.15rem;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+}
+
+.route__point--end {
+  text-align: right;
+}
+
+.route__line {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--color-primary);
+  min-width: 4.5rem;
+}
+
+.route__line::before,
+.route__line::after {
+  content: "";
+  height: 2px;
+  flex: 1;
+  background: currentColor;
+  opacity: 0.35;
+}
+
+.route-meta {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.route-meta__item {
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-muted);
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+@media (max-width: 640px) {
+  .summary-card {
+    padding: var(--space-lg);
+  }
+
+  .route {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+
+  .route__point--end {
+    text-align: left;
+  }
+
+  .route__line {
+    transform: rotate(90deg);
+    min-width: 0;
+    width: 2.5rem;
+    justify-self: start;
+  }
+}

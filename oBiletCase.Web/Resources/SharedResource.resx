@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AppName" xml:space="preserve"><value>oBiletCase</value></data>
+  <data name="NavHome" xml:space="preserve"><value>Ana Sayfa</value></data>
+  <data name="SkipToContent" xml:space="preserve"><value>İçeriğe geç</value></data>
+  <data name="SearchEyebrow" xml:space="preserve"><value>Otobüs biletleri</value></data>
+  <data name="SearchTitle" xml:space="preserve"><value>Otobüs bileti ara</value></data>
+  <data name="SearchAccent" xml:space="preserve"><value>kalkıştan varışa.</value></data>
+  <data name="SearchLede" xml:space="preserve"><value>Kalkış, varış ve tarihi seçin. Sonuçlar bir sonraki adımda listelenir.</value></data>
+  <data name="FooterTagline" xml:space="preserve"><value>Basit arama, net sonuç.</value></data>
+  <data name="OriginLabel" xml:space="preserve"><value>Nereden</value></data>
+  <data name="DestinationLabel" xml:space="preserve"><value>Nereye</value></data>
+  <data name="DepartureDateLabel" xml:space="preserve"><value>Gidiş Tarihi</value></data>
+  <data name="SwapLocationsLabel" xml:space="preserve"><value>Kalkış ve varışı değiştir</value></data>
+  <data name="TodayLabel" xml:space="preserve"><value>Bugün</value></data>
+  <data name="TomorrowLabel" xml:space="preserve"><value>Yarın</value></data>
+  <data name="SearchButton" xml:space="preserve"><value>Sefer Ara</value></data>
+  <data name="OriginPlaceholder" xml:space="preserve"><value>Kalkış noktası seçin</value></data>
+  <data name="DestinationPlaceholder" xml:space="preserve"><value>Varış noktası seçin</value></data>
+  <data name="ValidationOriginRequired" xml:space="preserve"><value>Kalkış noktası seçilmelidir.</value></data>
+  <data name="ValidationDestinationRequired" xml:space="preserve"><value>Varış noktası seçilmelidir.</value></data>
+  <data name="ValidationSameLocation" xml:space="preserve"><value>Kalkış ve varış noktası aynı olamaz.</value></data>
+  <data name="ValidationPastDate" xml:space="preserve"><value>Gidiş tarihi bugünden önce olamaz.</value></data>
+  <data name="ValidationDateRequired" xml:space="preserve"><value>Gidiş tarihi seçilmelidir.</value></data>
+  <data name="LanguageSwitchLabel" xml:space="preserve"><value>Dil</value></data>
+  <data name="NoLocationResults" xml:space="preserve"><value>Sonuç bulunamadı</value></data>
+  <data name="SearchLocationLoading" xml:space="preserve"><value>Aranıyor...</value></data>
+  <data name="SearchLocationError" xml:space="preserve"><value>Lokasyonlar yüklenemedi</value></data>
+  <data name="ClearLocationLabel" xml:space="preserve"><value>Seçimi temizle</value></data>
+  <data name="DatePickerLabel" xml:space="preserve"><value>Gidiş tarihi seçin</value></data>
+  <data name="DatePickerPreviousMonth" xml:space="preserve"><value>Önceki ay</value></data>
+  <data name="DatePickerNextMonth" xml:space="preserve"><value>Sonraki ay</value></data>
+  <data name="ErrorKicker" xml:space="preserve"><value>Bir sorun oluştu</value></data>
+  <data name="ErrorTitle" xml:space="preserve"><value>İstek işlenemedi</value></data>
+  <data name="ErrorBody" xml:space="preserve"><value>Beklenmeyen bir hata oluştu. Ana sayfadan yeniden deneyebilirsiniz.</value></data>
+  <data name="RequestIdLabel" xml:space="preserve"><value>İstek numarası</value></data>
+  <data name="JourneysComingSoonTitle" xml:space="preserve"><value>Sefer sonuçları yakında</value></data>
+  <data name="JourneysComingSoonBody" xml:space="preserve"><value>Arama kriterleriniz alındı; sefer listeleme ekranı bir sonraki adımda tamamlanacak.</value></data>
+  <data name="BackToSearch" xml:space="preserve"><value>Aramaya dön</value></data>
+  <data name="RecentSearchesTitle" xml:space="preserve"><value>Son aramalarınız</value></data>
+  <data name="OriginSummaryLabel" xml:space="preserve"><value>Kalkış</value></data>
+  <data name="DestinationSummaryLabel" xml:space="preserve"><value>Varış</value></data>
+  <data name="DepartureDateSummaryLabel" xml:space="preserve"><value>Tarih</value></data>
+</root>

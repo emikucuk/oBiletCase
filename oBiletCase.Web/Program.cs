@@ -1,13 +1,35 @@
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
+using oBiletCase.Application;
 using oBiletCase.Infrastructure;
 using oBiletCase.Web.AppUser;
+using oBiletCase.Web.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+builder.Services.AddControllersWithViews()
+    .AddViewLocalization()
+    .AddDataAnnotationsLocalization();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddApplication();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAppUserContext, AppUserContext>();
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[]
+    {
+        new CultureInfo(AppCultures.Turkish),
+        new CultureInfo(AppCultures.English),
+    };
+
+    options.DefaultRequestCulture = new RequestCulture(AppCultures.Turkish);
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+    options.RequestCultureProviders = [new CookieRequestCultureProvider { CookieName = AppCultures.CookieName }];
+});
 
 var app = builder.Build();
 
@@ -20,6 +42,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRequestLocalization();
 app.UseMiddleware<AppUserIdentityMiddleware>();
 app.UseRouting();
 

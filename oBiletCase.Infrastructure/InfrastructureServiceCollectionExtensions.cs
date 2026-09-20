@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using oBiletCase.Application.Locations;
 using oBiletCase.Application.Sessions;
 using oBiletCase.Infrastructure.oBiletAPI;
 
@@ -33,6 +34,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddMemoryCache();
         services.AddSingleton<ObiletApiClient>();
         services.AddSingleton<IObiletSessionAccessor, ObiletSessionAccessor>();
+        services.AddSingleton<IBusLocationService, BusLocationService>();
 
         return services;
     }
