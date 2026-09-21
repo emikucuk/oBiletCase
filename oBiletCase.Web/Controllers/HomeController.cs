@@ -21,6 +21,9 @@ public sealed class HomeController(
     IStringLocalizer<SharedResource> localizer,
     ILogger<HomeController> logger) : Controller
 {
+
+    private static readonly TimeSpan DefaultLocationsFetchTimeout = TimeSpan.FromSeconds(3);
+
     public async Task<IActionResult> Index(bool invalidSearch = false, CancellationToken cancellationToken = default)
     {
         var model = new JourneySearchViewModel
@@ -30,8 +33,11 @@ public sealed class HomeController(
 
         try
         {
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeoutCts.CancelAfter(DefaultLocationsFetchTimeout);
+
             var defaultLocations = await busLocationService.GetLocationsAsync(
-                appUserContext.AppUserId, query: null, CultureInfo.CurrentUICulture.Name, cancellationToken);
+                appUserContext.AppUserId, query: null, CultureInfo.CurrentUICulture.Name, timeoutCts.Token);
 
             if (defaultLocations.Count >= 2)
             {
@@ -41,7 +47,7 @@ public sealed class HomeController(
                 model.DestinationName = defaultLocations[1].Name;
             }
         }
-        catch (Exception ex) when (ex is InvalidOperationException or HttpRequestException or TaskCanceledException)
+        catch (Exception ex) when (ex is InvalidOperationException or HttpRequestException or TaskCanceledException or OperationCanceledException)
         {
             logger.LogError(ex, "Varsayılan origin/destination için lokasyon listesi alınırken hata oluştu.");
         }

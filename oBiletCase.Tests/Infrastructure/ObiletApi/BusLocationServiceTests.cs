@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using oBiletCase.Application.Sessions;
@@ -83,6 +84,45 @@ public class BusLocationServiceTests
             () => service.GetLocationsAsync("user-1", null, "tr-TR", CancellationToken.None));
     }
 
+    [Fact]
+    public async Task GetLocationsAsync_filtresiz_sorguda_ikinci_cagirimda_apiye_gitmez_cache_ten_doner()
+    {
+        var apiClient = new Mock<IObiletApiClient>();
+        apiClient
+            .Setup(c => c.GetBusLocationsAsync(Session, null, "tr-TR", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ObiletApiEnvelope<List<BusLocationDto>>
+            {
+                Status = "Success",
+                Data = [new BusLocationDto { Id = 349, Name = "İstanbul Avrupa" }],
+            });
+
+        var service = BuildService(apiClient.Object);
+
+        await service.GetLocationsAsync("user-1", null, "tr-TR", CancellationToken.None);
+        var second = await service.GetLocationsAsync("user-1", null, "tr-TR", CancellationToken.None);
+
+        Assert.Single(second);
+        apiClient.Verify(
+            c => c.GetBusLocationsAsync(Session, null, "tr-TR", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetLocationsAsync_metinli_sorguda_her_seferinde_apiye_gider_cache_lenmez()
+    {
+        var apiClient = new Mock<IObiletApiClient>();
+        apiClient
+            .Setup(c => c.GetBusLocationsAsync(Session, "ankara", "tr-TR", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ObiletApiEnvelope<List<BusLocationDto>> { Status = "Success", Data = [] });
+
+        var service = BuildService(apiClient.Object);
+
+        await service.GetLocationsAsync("user-1", "ankara", "tr-TR", CancellationToken.None);
+        await service.GetLocationsAsync("user-1", "ankara", "tr-TR", CancellationToken.None);
+
+        apiClient.Verify(
+            c => c.GetBusLocationsAsync(Session, "ankara", "tr-TR", It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
+
     private static BusLocationService BuildService(IObiletApiClient apiClient)
     {
         var sessionAccessor = new Mock<IObiletSessionAccessor>();
@@ -90,6 +130,7 @@ public class BusLocationServiceTests
             .Setup(s => s.GetOrCreateSessionAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Session);
 
-        return new BusLocationService(apiClient, sessionAccessor.Object, NullLogger<BusLocationService>.Instance);
+        return new BusLocationService(
+            apiClient, sessionAccessor.Object, new MemoryCache(new MemoryCacheOptions()), NullLogger<BusLocationService>.Instance);
     }
 }

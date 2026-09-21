@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using oBiletCase.Application.Locations;
 using oBiletCase.Application.Sessions;
@@ -7,15 +8,24 @@ namespace oBiletCase.Infrastructure.oBiletAPI;
 
 internal sealed class BusLocationService : IBusLocationService
 {
+
+    private static readonly TimeSpan DefaultLocationsCacheDuration = TimeSpan.FromMinutes(60);
+    private const string DefaultLocationsCacheKeyPrefix = "oBiletAPI:Locations:Default:";
+
     private readonly IObiletApiClient _apiClient;
     private readonly IObiletSessionAccessor _sessionAccessor;
+    private readonly IMemoryCache _cache;
     private readonly ILogger<BusLocationService> _logger;
 
     public BusLocationService(
-        IObiletApiClient apiClient, IObiletSessionAccessor sessionAccessor, ILogger<BusLocationService> logger)
+        IObiletApiClient apiClient,
+        IObiletSessionAccessor sessionAccessor,
+        IMemoryCache cache,
+        ILogger<BusLocationService> logger)
     {
         _apiClient = apiClient;
         _sessionAccessor = sessionAccessor;
+        _cache = cache;
         _logger = logger;
     }
 
@@ -24,6 +34,15 @@ internal sealed class BusLocationService : IBusLocationService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(appUserId);
         ArgumentException.ThrowIfNullOrWhiteSpace(language);
+
+        var isDefaultListRequest = string.IsNullOrWhiteSpace(query);
+        var cacheKey = DefaultLocationsCacheKeyPrefix + language;
+
+        if (isDefaultListRequest && _cache.TryGetValue(cacheKey, out IReadOnlyList<BusLocation>? cachedLocations)
+            && cachedLocations is not null)
+        {
+            return cachedLocations;
+        }
 
         var session = await _sessionAccessor.GetOrCreateSessionAsync(appUserId, cancellationToken);
 
@@ -36,8 +55,15 @@ internal sealed class BusLocationService : IBusLocationService
             throw new InvalidOperationException("Obilet bus location listesi alınamadı.");
         }
 
-        return envelope.Data
+        var locations = envelope.Data
             .Select(dto => new BusLocation(dto.Id, dto.Name))
             .ToList();
+
+        if (isDefaultListRequest)
+        {
+            _cache.Set(cacheKey, (IReadOnlyList<BusLocation>)locations, DefaultLocationsCacheDuration);
+        }
+
+        return locations;
     }
 }

@@ -5,6 +5,7 @@
 
   const DEBOUNCE_MS = 250;
   const MIN_QUERY_LENGTH = 0;
+  const REQUEST_TIMEOUT_MS = 15000;
 
   function debounce(fn, delay) {
     let timerId;
@@ -156,9 +157,13 @@
       const token = ++requestToken;
       renderStatus(options.loadingText, true);
 
+      const abortController = new AbortController();
+      const timeoutId = window.setTimeout(() => abortController.abort(), REQUEST_TIMEOUT_MS);
+
       try {
         const response = await fetch(`${options.searchUrl}?query=${encodeURIComponent(query)}`, {
           headers: { Accept: "application/json" },
+          signal: abortController.signal,
         });
 
         if (token !== requestToken) {
@@ -178,6 +183,8 @@
         }
 
         renderStatus(options.errorText, false);
+      } finally {
+        window.clearTimeout(timeoutId);
       }
     }, DEBOUNCE_MS);
 
