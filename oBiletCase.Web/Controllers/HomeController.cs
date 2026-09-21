@@ -9,6 +9,7 @@ using oBiletCase.Web.Models.Journeys;
 
 namespace oBiletCase.Web.Controllers;
 
+[ApiExplorerSettings(IgnoreApi = true)]
 public sealed class HomeController(
     IValidator<JourneySearchCriteria> journeySearchValidator,
     IStringLocalizer<SharedResource> localizer) : Controller

@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.OpenApi;
 using oBiletCase.Application;
 using oBiletCase.Infrastructure;
 using oBiletCase.Web.AppUser;
@@ -18,6 +19,18 @@ builder.Services.AddApplication();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAppUserContext, AppUserContext>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+
+builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "oBiletCase API",
+        Version = "v1",
+        Description = "API documentation for oBiletCase",
+    });
+});
 
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
@@ -44,6 +57,13 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseSwagger();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "oBiletCase API v1");
+});
+
 app.UseRequestLocalization();
 app.UseMiddleware<AppUserIdentityMiddleware>();
 app.UseRouting();

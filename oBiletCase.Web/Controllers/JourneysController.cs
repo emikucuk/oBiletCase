@@ -8,6 +8,7 @@ using oBiletCase.Web.Models.Journeys;
 
 namespace oBiletCase.Web.Controllers;
 
+[ApiExplorerSettings(IgnoreApi = true)]
 public sealed class JourneysController(
     IBusJourneyService busJourneyService,
     IValidator<JourneySearchCriteria> journeySearchValidator,

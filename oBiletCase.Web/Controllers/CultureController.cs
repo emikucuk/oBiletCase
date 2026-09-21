@@ -4,6 +4,7 @@ using oBiletCase.Web.Localization;
 
 namespace oBiletCase.Web.Controllers;
 
+[ApiExplorerSettings(IgnoreApi = true)]
 public sealed class CultureController : Controller
 {
     private static readonly TimeSpan CookieLifetime = TimeSpan.FromDays(365);

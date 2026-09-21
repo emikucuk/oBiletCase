@@ -12,7 +12,9 @@ public sealed class LocationsController(
     IAppUserContext appUserContext,
     ILogger<LocationsController> logger) : Controller
 {
-    [HttpGet]
+    [HttpGet("Locations/Search")]
+    [ProducesResponseType(typeof(IEnumerable<LocationOptionViewModel>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status502BadGateway)]
     public async Task<IActionResult> Search(string? query, CancellationToken cancellationToken)
     {
         try
