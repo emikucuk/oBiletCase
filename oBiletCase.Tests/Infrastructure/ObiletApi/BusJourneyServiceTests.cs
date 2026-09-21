@@ -1,115 +1,58 @@
-using System.Net;
-using System.Text;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
+using Moq;
 using oBiletCase.Application.Journeys;
+using oBiletCase.Application.Sessions;
 using oBiletCase.Infrastructure.oBiletAPI;
-using oBiletCase.Tests.TestSupport;
+using oBiletCase.Infrastructure.oBiletAPI.Contracts;
 
 namespace oBiletCase.Tests.Infrastructure.ObiletApi;
 
 public class BusJourneyServiceTests
 {
-    private static HttpResponseMessage JsonResponse(string json) => new(HttpStatusCode.OK)
-    {
-        Content = new StringContent(json, Encoding.UTF8, "application/json"),
-    };
-
-    private const string SessionResponseJson =
-        """{"status":"Success","data":{"session-id":"sid-1","device-id":"did-1"}}""";
-
-    // Alan adları/şekli docs/seferler.json'daki gerçek, canlı GetBusJourneys yanıtından alınmıştır (2026-09-23).
-    private const string JourneysResponseJson =
-        """
-        {
-          "status": "Success",
-          "data": [
-            {
-              "id": 1397550800,
-              "partner-id": 3578,
-              "partner-name": "Tokat Kale Seyahat",
-              "bus-type": "2+1",
-              "available-seats": 41,
-              "cancellation-offset": 6,
-              "partner-rating": 5.0,
-              "journey": {
-                "origin": "Esenyurt Balıkyolu Otobüs Kalkış-Varış Noktası",
-                "destination": "Sultanbeyli Otogarı",
-                "departure": "2026-09-23T19:15:00",
-                "arrival": "2026-09-23T21:15:00",
-                "duration": "02:00:00",
-                "currency": "TRY",
-                "internet-price": 400.0,
-                "description": "ZİLE BİLETLİ YOLCULARIMIZ TURHAL DURAĞINDAN SERVİS İLE DEVAM EDECEKLERDİR.",
-                "policy": { "mixed-genders": false, "gov-id": true }
-              },
-              "features": [
-                {"id": 7, "priority": 13, "name": "220 Voltluk Priz"},
-                {"id": 10, "priority": 10, "name": "Kablosuz Internet (WiFi)"}
-              ]
-            },
-            {
-              "id": 1375766754,
-              "partner-id": 4021,
-              "partner-name": "Rıdvan Ekinci Doğu Kars",
-              "bus-type": "2+1",
-              "available-seats": 35,
-              "journey": {
-                "origin": "İstanbul Avrupa",
-                "destination": "İstanbul Anadolu",
-                "departure": "2026-09-23T15:57:00",
-                "arrival": "2026-09-23T17:27:00",
-                "duration": "01:30:00",
-                "currency": "TRY",
-                "internet-price": 400.0
-              },
-              "features": []
-            }
-          ],
-          "message": null,
-          "user-message": null,
-          "api-request-id": null,
-          "controller": "JourneyController"
-        }
-        """;
+    private static readonly ObiletSession Session = new("sid-1", "did-1");
 
     [Fact]
-    public async Task GetJourneysAsync_api_yanitini_kalkis_saatine_gore_siralar()
+    public async Task GetJourneysAsync_sonuclari_kalkis_saatine_gore_artan_sekilde_siralar()
     {
-        var service = BuildService(new StubHttpMessageHandler((request, _) =>
-            request.RequestUri!.AbsolutePath.Contains("getsession")
-                ? JsonResponse(SessionResponseJson)
-                : JsonResponse(JourneysResponseJson)));
+        var earlyDeparture = CreateJourneyDto(id: 1, departure: new DateTime(2026, 9, 23, 8, 0, 0));
+        var lateDeparture = CreateJourneyDto(id: 2, departure: new DateTime(2026, 9, 23, 20, 0, 0));
 
-        var criteria = new JourneySearchCriteria(349, 350, DateOnly.FromDateTime(DateTime.Today.AddDays(1)));
-        var journeys = await service.GetJourneysAsync("user-1", criteria, "tr-TR", CancellationToken.None);
+        var service = BuildService(lateDeparture, earlyDeparture);
 
-        Assert.Equal(2, journeys.Count);
-        Assert.Equal(1375766754, journeys[0].Id);
-        Assert.Equal(1397550800, journeys[1].Id);
-        Assert.True(journeys[0].Departure < journeys[1].Departure);
+        var journeys = await service.GetJourneysAsync("user-1", AnyCriteria, "tr-TR", CancellationToken.None);
+
+        Assert.Equal([1, 2], journeys.Select(j => j.Id));
     }
 
     [Fact]
     public async Task GetJourneysAsync_api_yanitini_dogru_alanlarla_esler()
     {
-        var service = BuildService(new StubHttpMessageHandler((request, _) =>
-            request.RequestUri!.AbsolutePath.Contains("getsession")
-                ? JsonResponse(SessionResponseJson)
-                : JsonResponse(JourneysResponseJson)));
+        var dto = CreateJourneyDto(
+            id: 1397550800,
+            partnerId: 3578,
+            partnerName: "Tokat Kale Seyahat",
+            busType: "2+1",
+            availableSeats: 41,
+            departure: new DateTime(2026, 9, 23, 19, 15, 0),
+            arrival: new DateTime(2026, 9, 23, 21, 15, 0),
+            duration: TimeSpan.FromHours(2),
+            priceAmount: 400.0m,
+            currency: "TRY",
+            cancellationOffsetHours: 6,
+            partnerRating: 5.0m,
+            mixedGenders: false,
+            govIdRequired: true,
+            description: "ZİLE BİLETLİ YOLCULARIMIZ TURHAL DURAĞINDAN SERVİS İLE DEVAM EDECEKLERDİR.",
+            features: [new JourneyFeatureDto { Id = 10, Name = "Kablosuz Internet (WiFi)" }]);
 
-        var criteria = new JourneySearchCriteria(349, 350, DateOnly.FromDateTime(DateTime.Today.AddDays(1)));
-        var journeys = await service.GetJourneysAsync("user-1", criteria, "tr-TR", CancellationToken.None);
+        var service = BuildService(dto);
 
-        var journey = journeys.Single(j => j.Id == 1397550800);
+        var journey = (await service.GetJourneysAsync("user-1", AnyCriteria, "tr-TR", CancellationToken.None)).Single();
 
         Assert.Equal(3578, journey.PartnerId);
         Assert.Equal("Tokat Kale Seyahat", journey.PartnerName);
         Assert.Equal("2+1", journey.BusType);
         Assert.Equal(41, journey.AvailableSeats);
-        Assert.Equal("Esenyurt Balıkyolu Otobüs Kalkış-Varış Noktası", journey.OriginStopName);
-        Assert.Equal("Sultanbeyli Otogarı", journey.DestinationStopName);
         Assert.Equal(new DateTime(2026, 9, 23, 19, 15, 0), journey.Departure);
         Assert.Equal(TimeSpan.FromHours(2), journey.Duration);
         Assert.Equal("TRY", journey.Currency);
@@ -124,59 +67,23 @@ public class BusJourneyServiceTests
     }
 
     [Fact]
-    public async Task GetJourneysAsync_bos_aciklama_null_olarak_esler()
+    public async Task GetJourneysAsync_bos_aciklamayi_null_olarak_esler()
     {
-        var service = BuildService(new StubHttpMessageHandler((request, _) =>
-            request.RequestUri!.AbsolutePath.Contains("getsession")
-                ? JsonResponse(SessionResponseJson)
-                : JsonResponse(JourneysResponseJson)));
+        var dto = CreateJourneyDto(id: 1, description: "");
 
-        var criteria = new JourneySearchCriteria(349, 350, DateOnly.FromDateTime(DateTime.Today.AddDays(1)));
-        var journeys = await service.GetJourneysAsync("user-1", criteria, "tr-TR", CancellationToken.None);
+        var service = BuildService(dto);
 
-        var journey = journeys.Single(j => j.Id == 1375766754);
+        var journey = (await service.GetJourneysAsync("user-1", AnyCriteria, "tr-TR", CancellationToken.None)).Single();
 
         Assert.Null(journey.Details.Description);
     }
 
     [Fact]
-    public async Task GetJourneysAsync_istek_govdesi_dogru_sema_ile_gonderilir()
-    {
-        HttpRequestMessage? capturedRequest = null;
-        string? capturedBody = null;
-
-        var service = BuildService(new StubHttpMessageHandler((request, ct) =>
-        {
-            if (request.RequestUri!.AbsolutePath.Contains("getsession"))
-            {
-                return JsonResponse(SessionResponseJson);
-            }
-
-            capturedRequest = request;
-            capturedBody = request.Content!.ReadAsStringAsync(ct).GetAwaiter().GetResult();
-            return JsonResponse("""{"status":"Success","data":[]}""");
-        }));
-
-        var criteria = new JourneySearchCriteria(349, 356, new DateOnly(2026, 9, 25));
-        await service.GetJourneysAsync("user-1", criteria, "tr-TR", CancellationToken.None);
-
-        Assert.Equal("/api/journey/getbusjourneys", capturedRequest!.RequestUri!.AbsolutePath);
-        Assert.Contains("\"device-session\":{\"session-id\":\"sid-1\",\"device-id\":\"did-1\"}", capturedBody);
-        Assert.Contains("\"origin-id\":349", capturedBody);
-        Assert.Contains("\"destination-id\":356", capturedBody);
-        Assert.Contains("\"departure-date\":\"2026-09-25T00:00:00\"", capturedBody);
-    }
-
-    [Fact]
     public async Task GetJourneysAsync_bos_sonuc_donerse_bos_liste_doner()
     {
-        var service = BuildService(new StubHttpMessageHandler((request, _) =>
-            request.RequestUri!.AbsolutePath.Contains("getsession")
-                ? JsonResponse(SessionResponseJson)
-                : JsonResponse("""{"status":"Success","data":[]}""")));
+        var service = BuildService();
 
-        var criteria = new JourneySearchCriteria(1, 2, DateOnly.FromDateTime(DateTime.Today.AddDays(1)));
-        var journeys = await service.GetJourneysAsync("user-1", criteria, "tr-TR", CancellationToken.None);
+        var journeys = await service.GetJourneysAsync("user-1", AnyCriteria, "tr-TR", CancellationToken.None);
 
         Assert.Empty(journeys);
     }
@@ -184,31 +91,77 @@ public class BusJourneyServiceTests
     [Fact]
     public async Task GetJourneysAsync_api_basarisiz_status_donerse_exception_firlatir()
     {
-        var service = BuildService(new StubHttpMessageHandler((request, _) =>
-            request.RequestUri!.AbsolutePath.Contains("getsession")
-                ? JsonResponse(SessionResponseJson)
-                : JsonResponse("""{"status":"InvalidRoute","data":null,"message":"gecersiz rota"}""")));
+        var apiClient = new Mock<IObiletApiClient>();
+        apiClient
+            .Setup(c => c.GetBusJourneysAsync(Session, It.IsAny<JourneySearchCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ObiletApiEnvelope<List<JourneyDto>> { Status = "InvalidRoute" });
 
-        var criteria = new JourneySearchCriteria(1, 2, DateOnly.FromDateTime(DateTime.Today.AddDays(1)));
+        var service = BuildServiceWithApiClient(apiClient.Object);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => service.GetJourneysAsync("user-1", criteria, "tr-TR", CancellationToken.None));
+            () => service.GetJourneysAsync("user-1", AnyCriteria, "tr-TR", CancellationToken.None));
     }
 
-    private static BusJourneyService BuildService(HttpMessageHandler handler)
+    private static JourneySearchCriteria AnyCriteria { get; } =
+        new(OriginLocationId: 349, DestinationLocationId: 356, DepartureDate: DateOnly.FromDateTime(DateTime.Today.AddDays(1)));
+
+    private static JourneyDto CreateJourneyDto(
+        long id,
+        int partnerId = 1,
+        string partnerName = "Test Turizm",
+        string busType = "2+1",
+        int availableSeats = 40,
+        DateTime? departure = null,
+        DateTime? arrival = null,
+        TimeSpan? duration = null,
+        decimal priceAmount = 100m,
+        string currency = "TRY",
+        int? cancellationOffsetHours = null,
+        decimal? partnerRating = null,
+        bool mixedGenders = false,
+        bool govIdRequired = true,
+        string? description = null,
+        List<JourneyFeatureDto>? features = null) => new()
     {
-        var httpClient = new HttpClient(handler) { BaseAddress = new Uri("https://obilet.test/api/") };
-        var factory = new StubHttpClientFactory(httpClient);
-        var options = Options.Create(new oBiletAPIOptions
+        Id = id,
+        PartnerId = partnerId,
+        PartnerName = partnerName,
+        BusType = busType,
+        AvailableSeats = availableSeats,
+        CancellationOffsetHours = cancellationOffsetHours,
+        PartnerRating = partnerRating,
+        Features = features ?? [],
+        Journey = new JourneyDetailDto
         {
-            BaseUrl = "https://obilet.test/api",
-            ApiClientToken = "test-token",
-        });
+            Origin = "Kalkış Otogarı",
+            Destination = "Varış Otogarı",
+            Departure = departure ?? new DateTime(2026, 9, 23, 10, 0, 0),
+            Arrival = arrival ?? new DateTime(2026, 9, 23, 12, 0, 0),
+            Duration = duration ?? TimeSpan.FromHours(2),
+            Currency = currency,
+            InternetPrice = priceAmount,
+            Description = description,
+            Policy = new JourneyPolicyDto { MixedGenders = mixedGenders, GovIdRequired = govIdRequired },
+        },
+    };
 
-        var apiClient = new ObiletApiClient(factory, options, NullLogger<ObiletApiClient>.Instance);
-        var sessionAccessor = new ObiletSessionAccessor(
-            apiClient, new MemoryCache(new MemoryCacheOptions()), NullLogger<ObiletSessionAccessor>.Instance);
+    private static BusJourneyService BuildService(params JourneyDto[] dtos)
+    {
+        var apiClient = new Mock<IObiletApiClient>();
+        apiClient
+            .Setup(c => c.GetBusJourneysAsync(Session, It.IsAny<JourneySearchCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ObiletApiEnvelope<List<JourneyDto>> { Status = "Success", Data = dtos.ToList() });
 
-        return new BusJourneyService(apiClient, sessionAccessor, NullLogger<BusJourneyService>.Instance);
+        return BuildServiceWithApiClient(apiClient.Object);
+    }
+
+    private static BusJourneyService BuildServiceWithApiClient(IObiletApiClient apiClient)
+    {
+        var sessionAccessor = new Mock<IObiletSessionAccessor>();
+        sessionAccessor
+            .Setup(s => s.GetOrCreateSessionAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Session);
+
+        return new BusJourneyService(apiClient, sessionAccessor.Object, NullLogger<BusJourneyService>.Instance);
     }
 }

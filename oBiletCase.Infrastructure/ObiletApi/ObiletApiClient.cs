@@ -8,7 +8,7 @@ using oBiletCase.Infrastructure.oBiletAPI.Contracts;
 namespace oBiletCase.Infrastructure.oBiletAPI;
 
 
-internal sealed class ObiletApiClient
+internal sealed class ObiletApiClient : IObiletApiClient
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly oBiletAPIOptions _options;

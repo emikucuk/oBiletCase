@@ -9,6 +9,9 @@
     <!-- Infrastructure'ın internal sınıflarının (ör. ObiletApiClient) gerçek
          API'ye bağımlı olmayan mock/fake tabanlı testlerle doğrulanabilmesi için. -->
     <InternalsVisibleTo Include="oBiletCase.Tests" />
+    <!-- Moq, internal arayüzleri (ör. IObiletApiClient) kendi ürettiği dinamik proxy derlemesinde
+         mock'lar; bu derlemenin de internal üyeleri görebilmesi gerekir. -->
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
 
   <ItemGroup>

@@ -33,7 +33,7 @@ public static class InfrastructureServiceCollectionExtensions
         });
 
         services.AddMemoryCache();
-        services.AddSingleton<ObiletApiClient>();
+        services.AddSingleton<IObiletApiClient, ObiletApiClient>();
         services.AddSingleton<IObiletSessionAccessor, ObiletSessionAccessor>();
         services.AddSingleton<IBusLocationService, BusLocationService>();
         services.AddSingleton<IBusJourneyService, BusJourneyService>();

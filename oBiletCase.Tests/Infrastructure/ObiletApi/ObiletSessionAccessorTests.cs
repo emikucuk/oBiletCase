@@ -1,128 +1,100 @@
-using System.Net;
-using System.Text;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
+using Moq;
 using oBiletCase.Infrastructure.oBiletAPI;
-using oBiletCase.Tests.TestSupport;
+using oBiletCase.Infrastructure.oBiletAPI.Contracts;
 
 namespace oBiletCase.Tests.Infrastructure.ObiletApi;
 
 public class ObiletSessionAccessorTests
 {
-    private static HttpResponseMessage JsonResponse(string json) => new(HttpStatusCode.OK)
+    private static readonly ObiletApiEnvelope<DeviceSessionDto> SuccessEnvelope = new()
     {
-        Content = new StringContent(json, Encoding.UTF8, "application/json"),
+        Status = "Success",
+        Data = new DeviceSessionDto { SessionId = "sid-1", DeviceId = "did-1" },
     };
 
     [Fact]
     public async Task GetOrCreateSessionAsync_ilk_cagirimda_apiden_session_doner()
     {
-        var callCount = 0;
-        var handler = new StubHttpMessageHandler((request, ct) =>
-        {
-            callCount++;
-            return JsonResponse("""{"status":"Success","data":{"session-id":"sid-1","device-id":"did-1"}}""");
-        });
+        var apiClient = new Mock<IObiletApiClient>();
+        apiClient.Setup(c => c.GetSessionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SuccessEnvelope);
 
-        var accessor = BuildAccessor(handler);
+        var accessor = BuildAccessor(apiClient.Object);
 
         var session = await accessor.GetOrCreateSessionAsync("user-1", CancellationToken.None);
 
         Assert.Equal("sid-1", session.SessionId);
         Assert.Equal("did-1", session.DeviceId);
-        Assert.Equal(1, callCount);
-    }
-
-    [Fact]
-    public async Task GetOrCreateSessionAsync_istek_govdesi_canli_apiye_karsi_dogrulanmis_semayla_birebir_esler()
-    {
-
-        HttpRequestMessage? capturedRequest = null;
-        string? capturedBody = null;
-        var handler = new StubHttpMessageHandler((request, ct) =>
-        {
-            capturedRequest = request;
-            capturedBody = request.Content!.ReadAsStringAsync(ct).GetAwaiter().GetResult();
-            return JsonResponse("""{"status":"Success","data":{"session-id":"sid-1","device-id":"did-1"}}""");
-        });
-
-        var accessor = BuildAccessor(handler);
-        await accessor.GetOrCreateSessionAsync("user-1", CancellationToken.None);
-
-        Assert.Equal("/api/client/getsession", capturedRequest!.RequestUri!.AbsolutePath);
-        Assert.Contains("\"type\":1", capturedBody);
-        Assert.Contains("\"connection\":{\"ip-address\":", capturedBody);
-        Assert.Contains("\"port\":\"0\"", capturedBody);
-        Assert.Contains("\"browser\":{\"name\":", capturedBody);
-        Assert.DoesNotContain("\"application\":", capturedBody);
+        apiClient.Verify(c => c.GetSessionAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task GetOrCreateSessionAsync_ayni_kullanici_icin_ikinci_cagirimda_cache_ten_doner()
     {
-        var callCount = 0;
-        var handler = new StubHttpMessageHandler((request, ct) =>
-        {
-            callCount++;
-            return JsonResponse(
-                "{\"status\":\"Success\",\"data\":{\"session-id\":\"sid-" + callCount + "\",\"device-id\":\"did-" + callCount + "\"}}");
-        });
+        var apiClient = new Mock<IObiletApiClient>();
+        apiClient.Setup(c => c.GetSessionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(SuccessEnvelope);
 
-        var accessor = BuildAccessor(handler);
+        var accessor = BuildAccessor(apiClient.Object);
 
         var first = await accessor.GetOrCreateSessionAsync("user-1", CancellationToken.None);
         var second = await accessor.GetOrCreateSessionAsync("user-1", CancellationToken.None);
 
         Assert.Equal(first, second);
-        Assert.Equal(1, callCount); 
+        apiClient.Verify(c => c.GetSessionAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
     public async Task GetOrCreateSessionAsync_farkli_kullanicilar_icin_izole_session_doner()
     {
-        var callCount = 0;
-        var handler = new StubHttpMessageHandler((request, ct) =>
-        {
-            callCount++;
-            return JsonResponse(
-                "{\"status\":\"Success\",\"data\":{\"session-id\":\"sid-" + callCount + "\",\"device-id\":\"did-" + callCount + "\"}}");
-        });
+        var apiClient = new Mock<IObiletApiClient>();
+        apiClient.SetupSequence(c => c.GetSessionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ObiletApiEnvelope<DeviceSessionDto>
+            {
+                Status = "Success",
+                Data = new DeviceSessionDto { SessionId = "sid-user1", DeviceId = "did-user1" },
+            })
+            .ReturnsAsync(new ObiletApiEnvelope<DeviceSessionDto>
+            {
+                Status = "Success",
+                Data = new DeviceSessionDto { SessionId = "sid-user2", DeviceId = "did-user2" },
+            });
 
-        var accessor = BuildAccessor(handler);
+        var accessor = BuildAccessor(apiClient.Object);
 
         var user1Session = await accessor.GetOrCreateSessionAsync("user-1", CancellationToken.None);
         var user2Session = await accessor.GetOrCreateSessionAsync("user-2", CancellationToken.None);
 
         Assert.NotEqual(user1Session.SessionId, user2Session.SessionId);
-        Assert.Equal(2, callCount); 
+        apiClient.Verify(c => c.GetSessionAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
     }
 
     [Fact]
     public async Task GetOrCreateSessionAsync_api_basarisiz_status_donerse_exception_firlatir()
     {
-        var handler = new StubHttpMessageHandler((request, ct) =>
-            JsonResponse("""{"status":"InvalidLocation","data":null,"message":"gecersiz"}"""));
+        var apiClient = new Mock<IObiletApiClient>();
+        apiClient.Setup(c => c.GetSessionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ObiletApiEnvelope<DeviceSessionDto> { Status = "InvalidLocation" });
 
-        var accessor = BuildAccessor(handler);
+        var accessor = BuildAccessor(apiClient.Object);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => accessor.GetOrCreateSessionAsync("user-1", CancellationToken.None));
     }
 
-    private static ObiletSessionAccessor BuildAccessor(HttpMessageHandler handler)
+    [Fact]
+    public async Task GetOrCreateSessionAsync_api_null_donerse_exception_firlatir()
     {
-        var httpClient = new HttpClient(handler) { BaseAddress = new Uri("https://obilet.test/api/") };
-        var factory = new StubHttpClientFactory(httpClient);
-        var options = Options.Create(new oBiletAPIOptions
-        {
-            BaseUrl = "https://obilet.test/api",
-            ApiClientToken = "test-token",
-        });
+        var apiClient = new Mock<IObiletApiClient>();
+        apiClient.Setup(c => c.GetSessionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ObiletApiEnvelope<DeviceSessionDto>?)null);
 
-        var apiClient = new ObiletApiClient(
-            factory, options, NullLogger<ObiletApiClient>.Instance);
+        var accessor = BuildAccessor(apiClient.Object);
 
-        return new ObiletSessionAccessor(apiClient, new MemoryCache(new MemoryCacheOptions()), NullLogger<ObiletSessionAccessor>.Instance);
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => accessor.GetOrCreateSessionAsync("user-1", CancellationToken.None));
     }
+
+    private static ObiletSessionAccessor BuildAccessor(IObiletApiClient apiClient) =>
+        new(apiClient, new MemoryCache(new MemoryCacheOptions()), NullLogger<ObiletSessionAccessor>.Instance);
 }

@@ -7,12 +7,12 @@ namespace oBiletCase.Infrastructure.oBiletAPI;
 
 internal sealed class BusLocationService : IBusLocationService
 {
-    private readonly ObiletApiClient _apiClient;
+    private readonly IObiletApiClient _apiClient;
     private readonly IObiletSessionAccessor _sessionAccessor;
     private readonly ILogger<BusLocationService> _logger;
 
     public BusLocationService(
-        ObiletApiClient apiClient, IObiletSessionAccessor sessionAccessor, ILogger<BusLocationService> logger)
+        IObiletApiClient apiClient, IObiletSessionAccessor sessionAccessor, ILogger<BusLocationService> logger)
     {
         _apiClient = apiClient;
         _sessionAccessor = sessionAccessor;

@@ -10,11 +10,11 @@ internal sealed class ObiletSessionAccessor : IObiletSessionAccessor
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(30);
     private const string CacheKeyPrefix = "oBiletAPI:Session:";
 
-    private readonly ObiletApiClient _apiClient;
+    private readonly IObiletApiClient _apiClient;
     private readonly IMemoryCache _cache;
     private readonly ILogger<ObiletSessionAccessor> _logger;
 
-    public ObiletSessionAccessor(ObiletApiClient apiClient, IMemoryCache cache, ILogger<ObiletSessionAccessor> logger)
+    public ObiletSessionAccessor(IObiletApiClient apiClient, IMemoryCache cache, ILogger<ObiletSessionAccessor> logger)
     {
         _apiClient = apiClient;
         _cache = cache;
