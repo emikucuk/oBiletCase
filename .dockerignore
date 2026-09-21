@@ -1,0 +1,14 @@
+**/bin/
+**/obj/
+**/.vs/
+**/.git/
+**/.github/
+**/*.user
+.env
+*.env
+!.env.example
+oBiletCase.Tests/
+docs/
+README.md
+AGENTS.md
+CLAUDE.md

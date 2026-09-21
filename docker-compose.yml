@@ -1,0 +1,9 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # ASP.NET Core double-underscore binds to oBiletAPI:ApiClientToken
+      oBiletAPI__ApiClientToken: ${OBILET_API_CLIENT_TOKEN:?Set OBILET_API_CLIENT_TOKEN in the environment or a .env file}

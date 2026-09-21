@@ -340,7 +340,7 @@
   flex-direction: column;
   justify-content: center;
   gap: 0.3rem;
-  min-width: min(100%, 20rem);
+  min-width: 280px;
   min-height: 4.35rem;
   padding: 0.8rem 1.05rem;
   border: 1px solid transparent;
@@ -572,6 +572,10 @@
   font: inherit;
   cursor: pointer;
   transition: background-color var(--ease), border-color var(--ease);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .filters-bar__field.is-open .filters-bar__trigger,
@@ -683,7 +687,7 @@
 }
 
 .results-filters__group legend {
-  padding: 0 0 var(--space-xs);
+  padding: 0 0 var(--space-sm);
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.04em;
