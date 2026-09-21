@@ -26,6 +26,7 @@
   <data name="ValidationSameLocation" xml:space="preserve"><value>Departure and arrival location cannot be the same.</value></data>
   <data name="ValidationPastDate" xml:space="preserve"><value>Departure date cannot be in the past.</value></data>
   <data name="ValidationDateRequired" xml:space="preserve"><value>Departure date is required.</value></data>
+  <data name="ToastDismissLabel" xml:space="preserve"><value>Dismiss notification</value></data>
   <data name="LanguageSwitchLabel" xml:space="preserve"><value>Language</value></data>
   <data name="NoLocationResults" xml:space="preserve"><value>No results found</value></data>
   <data name="SearchLocationLoading" xml:space="preserve"><value>Searching...</value></data>

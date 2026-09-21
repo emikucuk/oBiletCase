@@ -26,6 +26,7 @@
   <data name="ValidationSameLocation" xml:space="preserve"><value>Kalkış ve varış noktası aynı olamaz.</value></data>
   <data name="ValidationPastDate" xml:space="preserve"><value>Gidiş tarihi bugünden önce olamaz.</value></data>
   <data name="ValidationDateRequired" xml:space="preserve"><value>Gidiş tarihi seçilmelidir.</value></data>
+  <data name="ToastDismissLabel" xml:space="preserve"><value>Bildirimi kapat</value></data>
   <data name="LanguageSwitchLabel" xml:space="preserve"><value>Dil</value></data>
   <data name="NoLocationResults" xml:space="preserve"><value>Sonuç bulunamadı</value></data>
   <data name="SearchLocationLoading" xml:space="preserve"><value>Aranıyor...</value></data>

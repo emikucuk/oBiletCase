@@ -13,6 +13,45 @@
       && a.departureDate === b.departureDate;
   }
 
+  // Sunucudaki JourneySearchCriteriaValidator / HomeController ile aynı kurallar.
+  // JS yalnızca UX için engeller + toast gösterir; sunucu validasyonu her durumda çalışır.
+  function clearFieldInvalid(form) {
+    form.querySelectorAll(".search-bar__field.is-invalid").forEach((field) => {
+      field.classList.remove("is-invalid");
+    });
+  }
+
+  function markFieldInvalid(field) {
+    if (field) {
+      field.classList.add("is-invalid");
+    }
+  }
+
+  // İlk ihlali döner; toast tek mesaj gösterir, alanlar is-invalid ile işaretlenir.
+  function findClientValidationError(search, minDate, messages) {
+    if (!search.originId) {
+      return { message: messages.originRequired, fields: ["origin"] };
+    }
+
+    if (!search.destinationId) {
+      return { message: messages.destinationRequired, fields: ["destination"] };
+    }
+
+    if (search.originId === search.destinationId) {
+      return { message: messages.sameLocation, fields: ["origin", "destination"] };
+    }
+
+    if (!search.departureDate) {
+      return { message: messages.dateRequired, fields: ["date"] };
+    }
+
+    if (search.departureDate < minDate) {
+      return { message: messages.pastDate, fields: ["date"] };
+    }
+
+    return null;
+  }
+
   function saveRecentSearches(searches) {
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(searches.slice(0, MAX_RECENT_SEARCHES)));
@@ -139,8 +178,17 @@
     const searchUrl = form.dataset.locationsSearchUrl;
     const originField = originRoot.closest(".search-bar__field");
     const destinationField = destinationRoot.closest(".search-bar__field");
+    const dateField = dateRoot.closest(".search-bar__field");
     const originControl = originField.querySelector(".search-bar__control");
     const destinationControl = destinationField.querySelector(".search-bar__control");
+    const validationMessages = {
+      originRequired: form.dataset.validationOriginRequired || "",
+      destinationRequired: form.dataset.validationDestinationRequired || "",
+      sameLocation: form.dataset.validationSameLocation || "",
+      dateRequired: form.dataset.validationDateRequired || "",
+      pastDate: form.dataset.validationPastDate || "",
+    };
+    const toastDismissLabel = form.dataset.toastDismissLabel || "";
 
     const origin = window.oBiletCase.initLocationAutocomplete(originRoot, {
       searchUrl,
@@ -292,17 +340,48 @@
       renderRecentSearches(recentSearches);
     }
 
-    form.addEventListener("submit", () => {
+    if (form.dataset.initialToast) {
+      const fallback = document.querySelector("[data-server-validation-fallback]");
+      if (fallback) {
+        fallback.remove();
+      }
+
+      window.oBiletCase.showToast(form.dataset.initialToast, { dismissLabel: toastDismissLabel });
+    }
+
+    form.addEventListener("submit", (event) => {
       const originValue = origin.getValue();
       const destinationValue = destination.getValue();
 
-      saveRecentSearch({
+      const search = {
         originId: originValue.id,
         originName: originValue.name,
         destinationId: destinationValue.id,
         destinationName: destinationValue.name,
         departureDate: datePicker.getValue(),
-      });
+      };
+
+      clearFieldInvalid(form);
+
+      const clientError = findClientValidationError(
+        search,
+        dateRoot.dataset.minDate,
+        validationMessages);
+
+      if (clientError) {
+        event.preventDefault();
+
+        const fieldMap = {
+          origin: originField,
+          destination: destinationField,
+          date: dateField,
+        };
+        clientError.fields.forEach((key) => markFieldInvalid(fieldMap[key]));
+        window.oBiletCase.showToast(clientError.message, { dismissLabel: toastDismissLabel });
+        return;
+      }
+
+      saveRecentSearch(search);
     });
   }
 

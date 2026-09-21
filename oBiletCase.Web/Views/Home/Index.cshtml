@@ -6,6 +6,9 @@
     var originInvalid = ViewData.ModelState[nameof(Model.OriginId)]?.Errors.Count > 0;
     var destinationInvalid = ViewData.ModelState[nameof(Model.DestinationId)]?.Errors.Count > 0;
     var dateInvalid = ViewData.ModelState[nameof(Model.DepartureDate)]?.Errors.Count > 0;
+    var initialToast = ViewData["ShowInvalidSearchNotice"] as bool? == true
+        ? (string)Localizer["InvalidSearchNotice"]
+        : ViewData.ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault();
 }
 
 <section class="hero">
@@ -22,29 +25,24 @@
 </section>
 
 <section class="search-panel">
-    @if (ViewData["ShowInvalidSearchNotice"] as bool? == true)
+    @if (!string.IsNullOrEmpty(initialToast))
     {
-        <div class="validation-summary" role="alert">
-            <ul><li>@Localizer["InvalidSearchNotice"]</li></ul>
+        <div class="validation-summary" data-server-validation-fallback role="alert">
+            <ul><li>@initialToast</li></ul>
         </div>
     }
 
     <form id="journeySearchForm" asp-controller="Home" asp-action="Index" method="post" class="search-form"
           data-search-form
           data-locations-search-url="@Url.Action("Search", "Locations")"
-          data-fresh="@(isFresh ? "true" : "false")">
-
-        @if (!ViewData.ModelState.IsValid)
-        {
-            <div class="validation-summary" role="alert">
-                <ul>
-                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                    {
-                        <li>@error.ErrorMessage</li>
-                    }
-                </ul>
-            </div>
-        }
+          data-fresh="@(isFresh ? "true" : "false")"
+          data-validation-origin-required="@Localizer["ValidationOriginRequired"]"
+          data-validation-destination-required="@Localizer["ValidationDestinationRequired"]"
+          data-validation-same-location="@Localizer["ValidationSameLocation"]"
+          data-validation-date-required="@Localizer["ValidationDateRequired"]"
+          data-validation-past-date="@Localizer["ValidationPastDate"]"
+          data-toast-dismiss-label="@Localizer["ToastDismissLabel"]"
+          data-initial-toast="@initialToast">
 
         <div class="search-bar">
             <div class="search-bar__field @(originInvalid ? "is-invalid" : null)">
@@ -73,7 +71,6 @@
                             data-autocomplete-list hidden></ul>
                     </div>
                 </div>
-                <span asp-validation-for="OriginId" class="field-error"></span>
             </div>
 
             <button type="button" class="btn-icon search-bar__swap" data-swap aria-label="@Localizer["SwapLocationsLabel"]">
@@ -108,7 +105,6 @@
                             data-autocomplete-list hidden></ul>
                     </div>
                 </div>
-                <span asp-validation-for="DestinationId" class="field-error"></span>
             </div>
 
             <div class="search-bar__field search-bar__date @(dateInvalid ? "is-invalid" : null)">
@@ -145,7 +141,6 @@
                         <div class="datepicker__grid" role="grid" data-datepicker-grid></div>
                     </div>
                 </div>
-                <span asp-validation-for="DepartureDate" class="field-error"></span>
             </div>
 
             <button type="submit" class="btn btn-primary search-bar__submit">
@@ -172,6 +167,7 @@
 </section>
 
 @section Scripts {
+    <script src="~/js/toast.js" asp-append-version="true" defer></script>
     <script src="~/js/datepicker.js" asp-append-version="true" defer></script>
     <script src="~/js/search-form.js" asp-append-version="true" defer></script>
 }
