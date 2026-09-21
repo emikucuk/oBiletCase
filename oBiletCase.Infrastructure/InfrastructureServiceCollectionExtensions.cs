@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using oBiletCase.Application.Journeys;
 using oBiletCase.Application.Locations;
 using oBiletCase.Application.Sessions;
 using oBiletCase.Infrastructure.oBiletAPI;
@@ -35,6 +36,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<ObiletApiClient>();
         services.AddSingleton<IObiletSessionAccessor, ObiletSessionAccessor>();
         services.AddSingleton<IBusLocationService, BusLocationService>();
+        services.AddSingleton<IBusJourneyService, BusJourneyService>();
 
         return services;
     }

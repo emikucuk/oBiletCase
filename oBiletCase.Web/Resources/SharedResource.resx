@@ -38,11 +38,51 @@
   <data name="ErrorTitle" xml:space="preserve"><value>İstek işlenemedi</value></data>
   <data name="ErrorBody" xml:space="preserve"><value>Beklenmeyen bir hata oluştu. Ana sayfadan yeniden deneyebilirsiniz.</value></data>
   <data name="RequestIdLabel" xml:space="preserve"><value>İstek numarası</value></data>
-  <data name="JourneysComingSoonTitle" xml:space="preserve"><value>Sefer sonuçları yakında</value></data>
-  <data name="JourneysComingSoonBody" xml:space="preserve"><value>Arama kriterleriniz alındı; sefer listeleme ekranı bir sonraki adımda tamamlanacak.</value></data>
   <data name="BackToSearch" xml:space="preserve"><value>Aramaya dön</value></data>
   <data name="RecentSearchesTitle" xml:space="preserve"><value>Son aramalarınız</value></data>
+  <data name="RemoveRecentSearchLabel" xml:space="preserve"><value>Bu aramayı kaldır</value></data>
   <data name="OriginSummaryLabel" xml:space="preserve"><value>Kalkış</value></data>
   <data name="DestinationSummaryLabel" xml:space="preserve"><value>Varış</value></data>
   <data name="DepartureDateSummaryLabel" xml:space="preserve"><value>Tarih</value></data>
+  <data name="InvalidSearchNotice" xml:space="preserve"><value>Aramanız artık geçerli değil. Lütfen kriterleri kontrol edip tekrar deneyin.</value></data>
+  <data name="JourneysResultsTitle" xml:space="preserve"><value>Sefer sonuçları</value></data>
+  <data name="JourneysCountSuffix" xml:space="preserve"><value>sefer bulundu</value></data>
+  <data name="NoJourneysFoundTitle" xml:space="preserve"><value>Bu tarihte sefer bulunamadı</value></data>
+  <data name="NoJourneysFoundBody" xml:space="preserve"><value>Farklı bir tarih veya güzergah deneyebilirsiniz.</value></data>
+  <data name="JourneysLoadErrorTitle" xml:space="preserve"><value>Seferler yüklenemedi</value></data>
+  <data name="JourneysLoadErrorBody" xml:space="preserve"><value>Obilet servisine şu anda ulaşılamıyor. Lütfen daha sonra tekrar deneyin.</value></data>
+  <data name="DurationLabel" xml:space="preserve"><value>Süre</value></data>
+  <data name="AvailableSeatsSuffix" xml:space="preserve"><value>boş koltuk</value></data>
+  <data name="ViewOnObiletButton" xml:space="preserve"><value>Obilet'te incele</value></data>
+  <data name="PreviousDayLabel" xml:space="preserve"><value>Önceki gün</value></data>
+  <data name="NextDayLabel" xml:space="preserve"><value>Sonraki gün</value></data>
+  <data name="DayStripLabel" xml:space="preserve"><value>Gidiş tarihi</value></data>
+  <data name="SortLabel" xml:space="preserve"><value>Sırala</value></data>
+  <data name="SortDepartureAscending" xml:space="preserve"><value>Kalkış (erken → geç)</value></data>
+  <data name="SortDepartureDescending" xml:space="preserve"><value>Kalkış (geç → erken)</value></data>
+  <data name="SortPriceAscending" xml:space="preserve"><value>Fiyat (düşük → yüksek)</value></data>
+  <data name="SortPriceDescending" xml:space="preserve"><value>Fiyat (yüksek → düşük)</value></data>
+  <data name="DetailsLabel" xml:space="preserve"><value>Detaylar</value></data>
+  <data name="CancellationPolicyLabel" xml:space="preserve"><value>İptal koşulu</value></data>
+  <data name="CancellationPolicyValue" xml:space="preserve"><value>Kalkıştan en az {0} saat önce iptal edilebilir.</value></data>
+  <data name="GovIdRequiredLabel" xml:space="preserve"><value>Kimlik zorunluluğu</value></data>
+  <data name="GovIdRequiredYes" xml:space="preserve"><value>TC kimlik numarası gerekli</value></data>
+  <data name="GovIdRequiredNo" xml:space="preserve"><value>Kimlik numarası gerekmez</value></data>
+  <data name="SeatingPolicyLabel" xml:space="preserve"><value>Oturma düzeni</value></data>
+  <data name="SeatingPolicyMixed" xml:space="preserve"><value>Kadın-erkek karışık oturulabilir</value></data>
+  <data name="SeatingPolicySeparate" xml:space="preserve"><value>Kadın-erkek ayrı oturma düzeni</value></data>
+  <data name="PartnerRatingLabel" xml:space="preserve"><value>Firma puanı</value></data>
+  <data name="OvernightBridgeLabel" xml:space="preserve"><value>{0}'ı {1}'ye bağlayan gece</value></data>
+  <data name="FiltersTitle" xml:space="preserve"><value>Filtrele</value></data>
+  <data name="ClearFiltersButton" xml:space="preserve"><value>Filtreleri temizle</value></data>
+  <data name="TimeFilterLabel" xml:space="preserve"><value>Kalkış saati</value></data>
+  <data name="TimeFilterNight" xml:space="preserve"><value>Gece (00:00–06:00)</value></data>
+  <data name="TimeFilterMorning" xml:space="preserve"><value>Sabah (06:00–12:00)</value></data>
+  <data name="TimeFilterAfternoon" xml:space="preserve"><value>Öğlen (12:00–18:00)</value></data>
+  <data name="TimeFilterEvening" xml:space="preserve"><value>Akşam (18:00–24:00)</value></data>
+  <data name="BusTypeFilterLabel" xml:space="preserve"><value>Koltuk düzeni</value></data>
+  <data name="FiltersNoMatchBody" xml:space="preserve"><value>Seçtiğiniz filtrelere uyan sefer bulunamadı.</value></data>
+  <data name="FiltersAllLabel" xml:space="preserve"><value>Tümü</value></data>
+  <data name="FiltersActiveLabel" xml:space="preserve"><value>{0} seçili</value></data>
+  <data name="CloseFiltersLabel" xml:space="preserve"><value>Kapat</value></data>
 </root>

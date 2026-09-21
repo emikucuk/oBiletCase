@@ -27,7 +27,8 @@ internal sealed class BusLocationService : IBusLocationService
 
         var session = await _sessionAccessor.GetOrCreateSessionAsync(appUserId, cancellationToken);
 
-        var envelope = await _apiClient.GetBusLocationsAsync(session, query, ToObiletLanguage(language), cancellationToken);
+        var envelope = await _apiClient.GetBusLocationsAsync(
+            session, query, ObiletLanguage.ToObiletWireValue(language), cancellationToken);
 
         if (envelope is null || envelope.GetStatus() != ObiletResponseStatus.Success || envelope.Data is null)
         {
@@ -39,10 +40,4 @@ internal sealed class BusLocationService : IBusLocationService
             .Select(dto => new BusLocation(dto.Id, dto.Name))
             .ToList();
     }
-
-    private static string ToObiletLanguage(string language) => language switch
-    {
-        "en-US" => "en-EN",
-        _ => language,
-    };
 }

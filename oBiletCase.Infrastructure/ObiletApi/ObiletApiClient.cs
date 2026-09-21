@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using oBiletCase.Application.Journeys;
 using oBiletCase.Application.Sessions;
 using oBiletCase.Infrastructure.oBiletAPI.Contracts;
 
@@ -89,6 +90,48 @@ internal sealed class ObiletApiClient
         if (envelope is not null && envelope.GetStatus() != ObiletResponseStatus.Success)
         {
             _logger.LogWarning("Obilet GetBusLocations isteği status={Status} döndürdü.", envelope.Status);
+        }
+
+        return envelope;
+    }
+
+    public async Task<ObiletApiEnvelope<List<JourneyDto>>?> GetBusJourneysAsync(
+        ObiletSession session, JourneySearchCriteria criteria, string language, CancellationToken cancellationToken)
+    {
+        var request = new GetBusJourneysRequestDto
+        {
+            DeviceSession = new DeviceSessionDto
+            {
+                SessionId = session.SessionId,
+                DeviceId = session.DeviceId,
+            },
+            Date = DateTime.Now,
+            Language = language,
+            Data = new JourneySearchDataDto
+            {
+                OriginId = criteria.OriginLocationId,
+                DestinationId = criteria.DestinationLocationId,
+                DepartureDate = criteria.DepartureDate.ToDateTime(TimeOnly.MinValue),
+            },
+        };
+
+        var client = _httpClientFactory.CreateClient(oBiletAPIOptions.HttpClientName);
+
+        using var response = await client.PostAsJsonAsync("journey/getbusjourneys", request, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogWarning(
+                "Obilet GetBusJourneys isteği HTTP {StatusCode} ile başarısız oldu.",
+                (int)response.StatusCode);
+            return null;
+        }
+
+        var envelope = await response.Content.ReadFromJsonAsync<ObiletApiEnvelope<List<JourneyDto>>>(cancellationToken);
+
+        if (envelope is not null && envelope.GetStatus() != ObiletResponseStatus.Success)
+        {
+            _logger.LogWarning("Obilet GetBusJourneys isteği status={Status} döndürdü.", envelope.Status);
         }
 
         return envelope;

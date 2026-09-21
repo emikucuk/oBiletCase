@@ -47,7 +47,7 @@
 }
 
 .datepicker__weekday::after {
-  content: "·";
+  content: "\00B7";
   margin-left: 0.35rem;
   color: var(--color-border-strong);
 }

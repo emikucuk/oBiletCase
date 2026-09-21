@@ -38,11 +38,51 @@
   <data name="ErrorTitle" xml:space="preserve"><value>The request could not be processed</value></data>
   <data name="ErrorBody" xml:space="preserve"><value>An unexpected error occurred. You can try again from the home page.</value></data>
   <data name="RequestIdLabel" xml:space="preserve"><value>Request ID</value></data>
-  <data name="JourneysComingSoonTitle" xml:space="preserve"><value>Journey results coming soon</value></data>
-  <data name="JourneysComingSoonBody" xml:space="preserve"><value>Your search criteria were received; the journey listing screen will be completed in the next step.</value></data>
   <data name="BackToSearch" xml:space="preserve"><value>Back to search</value></data>
   <data name="RecentSearchesTitle" xml:space="preserve"><value>Your recent searches</value></data>
+  <data name="RemoveRecentSearchLabel" xml:space="preserve"><value>Remove this search</value></data>
   <data name="OriginSummaryLabel" xml:space="preserve"><value>From</value></data>
   <data name="DestinationSummaryLabel" xml:space="preserve"><value>To</value></data>
   <data name="DepartureDateSummaryLabel" xml:space="preserve"><value>Date</value></data>
+  <data name="InvalidSearchNotice" xml:space="preserve"><value>Your search is no longer valid. Please check the criteria and try again.</value></data>
+  <data name="JourneysResultsTitle" xml:space="preserve"><value>Journey results</value></data>
+  <data name="JourneysCountSuffix" xml:space="preserve"><value>journeys found</value></data>
+  <data name="NoJourneysFoundTitle" xml:space="preserve"><value>No journeys found for this date</value></data>
+  <data name="NoJourneysFoundBody" xml:space="preserve"><value>Try a different date or route.</value></data>
+  <data name="JourneysLoadErrorTitle" xml:space="preserve"><value>Journeys could not be loaded</value></data>
+  <data name="JourneysLoadErrorBody" xml:space="preserve"><value>The Obilet service is currently unreachable. Please try again later.</value></data>
+  <data name="DurationLabel" xml:space="preserve"><value>Duration</value></data>
+  <data name="AvailableSeatsSuffix" xml:space="preserve"><value>seats available</value></data>
+  <data name="ViewOnObiletButton" xml:space="preserve"><value>View on Obilet</value></data>
+  <data name="PreviousDayLabel" xml:space="preserve"><value>Previous day</value></data>
+  <data name="NextDayLabel" xml:space="preserve"><value>Next day</value></data>
+  <data name="DayStripLabel" xml:space="preserve"><value>Departure date</value></data>
+  <data name="SortLabel" xml:space="preserve"><value>Sort by</value></data>
+  <data name="SortDepartureAscending" xml:space="preserve"><value>Departure (earliest first)</value></data>
+  <data name="SortDepartureDescending" xml:space="preserve"><value>Departure (latest first)</value></data>
+  <data name="SortPriceAscending" xml:space="preserve"><value>Price (low to high)</value></data>
+  <data name="SortPriceDescending" xml:space="preserve"><value>Price (high to low)</value></data>
+  <data name="DetailsLabel" xml:space="preserve"><value>Details</value></data>
+  <data name="CancellationPolicyLabel" xml:space="preserve"><value>Cancellation policy</value></data>
+  <data name="CancellationPolicyValue" xml:space="preserve"><value>Can be cancelled at least {0} hours before departure.</value></data>
+  <data name="GovIdRequiredLabel" xml:space="preserve"><value>ID requirement</value></data>
+  <data name="GovIdRequiredYes" xml:space="preserve"><value>National ID number required</value></data>
+  <data name="GovIdRequiredNo" xml:space="preserve"><value>No ID number required</value></data>
+  <data name="SeatingPolicyLabel" xml:space="preserve"><value>Seating policy</value></data>
+  <data name="SeatingPolicyMixed" xml:space="preserve"><value>Mixed-gender seating allowed</value></data>
+  <data name="SeatingPolicySeparate" xml:space="preserve"><value>Separate seating by gender</value></data>
+  <data name="PartnerRatingLabel" xml:space="preserve"><value>Partner rating</value></data>
+  <data name="OvernightBridgeLabel" xml:space="preserve"><value>Night linking {0} to {1}</value></data>
+  <data name="FiltersTitle" xml:space="preserve"><value>Filters</value></data>
+  <data name="ClearFiltersButton" xml:space="preserve"><value>Clear filters</value></data>
+  <data name="TimeFilterLabel" xml:space="preserve"><value>Departure time</value></data>
+  <data name="TimeFilterNight" xml:space="preserve"><value>Night (00:00–06:00)</value></data>
+  <data name="TimeFilterMorning" xml:space="preserve"><value>Morning (06:00–12:00)</value></data>
+  <data name="TimeFilterAfternoon" xml:space="preserve"><value>Afternoon (12:00–18:00)</value></data>
+  <data name="TimeFilterEvening" xml:space="preserve"><value>Evening (18:00–24:00)</value></data>
+  <data name="BusTypeFilterLabel" xml:space="preserve"><value>Seat layout</value></data>
+  <data name="FiltersNoMatchBody" xml:space="preserve"><value>No journeys match the selected filters.</value></data>
+  <data name="FiltersAllLabel" xml:space="preserve"><value>All</value></data>
+  <data name="FiltersActiveLabel" xml:space="preserve"><value>{0} selected</value></data>
+  <data name="CloseFiltersLabel" xml:space="preserve"><value>Close</value></data>
 </root>

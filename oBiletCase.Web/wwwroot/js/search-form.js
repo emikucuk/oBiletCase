@@ -13,15 +13,21 @@
       && a.departureDate === b.departureDate;
   }
 
-  function saveRecentSearch(search) {
+  function saveRecentSearches(searches) {
     try {
-      const withoutDuplicate = loadRecentSearches().filter((item) => !isSameSearch(item, search));
-      const updated = [search, ...withoutDuplicate].slice(0, MAX_RECENT_SEARCHES);
-
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(searches.slice(0, MAX_RECENT_SEARCHES)));
     } catch {
       // localStorage kullanılamıyorsa (gizli mod vb.) geçmiş arama hatırlatma sessizce atlanır.
     }
+  }
+
+  function saveRecentSearch(search) {
+    const withoutDuplicate = loadRecentSearches().filter((item) => !isSameSearch(item, search));
+    saveRecentSearches([search, ...withoutDuplicate]);
+  }
+
+  function removeRecentSearch(search) {
+    saveRecentSearches(loadRecentSearches().filter((item) => !isSameSearch(item, search)));
   }
 
   function loadRecentSearches() {
@@ -179,6 +185,7 @@
       }
 
       const list = section.querySelector("[data-recent-searches-list]");
+      const removeLabel = section.dataset.removeLabel || "";
       list.innerHTML = "";
 
       if (searches.length === 0) {
@@ -232,7 +239,19 @@
           form.requestSubmit();
         });
 
-        item.appendChild(button);
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.className = "recent-searches__remove";
+        removeButton.setAttribute("aria-label", removeLabel);
+        removeButton.textContent = "×";
+        removeButton.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          removeRecentSearch(search);
+          renderRecentSearches(loadRecentSearches());
+        });
+
+        item.append(button, removeButton);
         list.appendChild(item);
       });
 

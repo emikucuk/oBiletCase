@@ -13,7 +13,7 @@ public sealed class HomeController(
     IValidator<JourneySearchCriteria> journeySearchValidator,
     IStringLocalizer<SharedResource> localizer) : Controller
 {
-    public IActionResult Index()
+    public IActionResult Index(bool invalidSearch = false)
     {
         var model = new JourneySearchViewModel
         {
@@ -21,6 +21,7 @@ public sealed class HomeController(
         };
 
         ViewData["IsFreshSearch"] = true;
+        ViewData["ShowInvalidSearchNotice"] = invalidSearch;
 
         return View(model);
     }

@@ -22,6 +22,13 @@
 </section>
 
 <section class="search-panel">
+    @if (ViewData["ShowInvalidSearchNotice"] as bool? == true)
+    {
+        <div class="validation-summary" role="alert">
+            <ul><li>@Localizer["InvalidSearchNotice"]</li></ul>
+        </div>
+    }
+
     <form id="journeySearchForm" asp-controller="Home" asp-action="Index" method="post" class="search-form"
           data-search-form
           data-locations-search-url="@Url.Action("Search", "Locations")"
@@ -157,7 +164,9 @@
     </form>
 </section>
 
-<section class="recent-searches" id="recentSearches" data-recent-searches hidden aria-label="@Localizer["RecentSearchesTitle"]">
+<section class="recent-searches" id="recentSearches" data-recent-searches hidden
+         aria-label="@Localizer["RecentSearchesTitle"]"
+         data-remove-label="@Localizer["RemoveRecentSearchLabel"]">
     <p class="recent-searches__label">@Localizer["RecentSearchesTitle"]</p>
     <ul class="recent-searches__list" data-recent-searches-list></ul>
 </section>

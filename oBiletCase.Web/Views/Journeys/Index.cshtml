@@ -1,12 +1,29 @@
-@model oBiletCase.Web.Models.Journeys.JourneySearchSummaryViewModel
+@using oBiletCase.Web.Models.Journeys
+@model oBiletCase.Web.Models.Journeys.JourneyResultsViewModel
+@using System.Globalization
 @{
-    ViewData["Title"] = Localizer["JourneysComingSoonTitle"];
+    ViewData["Title"] = Localizer["JourneysResultsTitle"];
+    var culture = CultureInfo.CurrentUICulture;
+
+    string DayLabel(DateOnly date) => date.ToString("d MMM", culture);
+    string WeekdayLabel(DateOnly date) => date.ToString("ddd", culture);
 }
 
-<section class="summary-card">
-    <p class="summary-card__kicker">@Localizer["SearchEyebrow"]</p>
-    <h1>@Localizer["JourneysComingSoonTitle"]</h1>
-    <p class="summary-card__lede">@Localizer["JourneysComingSoonBody"]</p>
+<section class="results-hero">
+    <div class="results-hero__top">
+        <p class="hero__eyebrow">
+            <span class="hero__eyebrow-dot" aria-hidden="true"></span>
+            @Localizer["SearchEyebrow"]
+        </p>
+        <a class="btn btn-ghost results-hero__back" asp-controller="Home" asp-action="Index">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M19 12H5M11 6l-6 6 6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            @Localizer["BackToSearch"]
+        </a>
+    </div>
+
+    <h1 class="results-hero__title">@Localizer["JourneysResultsTitle"]</h1>
 
     <div class="route">
         <div class="route__point">
@@ -16,8 +33,13 @@
             </dl>
         </div>
         <div class="route__line" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M5 12h14M14 7l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <svg class="route__bus" width="44" height="22" viewBox="0 0 44 22" fill="none">
+                <path d="M2 11h5M9 11h3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.35"/>
+                <rect x="14" y="4" width="20" height="11" rx="2.2" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M34 8.5h3.2l2.3 3.2V15H34V8.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                <path d="M17 7.2h3.5M22.5 7.2h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
+                <circle cx="19" cy="16.5" r="2" stroke="currentColor" stroke-width="1.4"/>
+                <circle cx="30.5" cy="16.5" r="2" stroke="currentColor" stroke-width="1.4"/>
             </svg>
         </div>
         <div class="route__point route__point--end">
@@ -28,9 +50,380 @@
         </div>
     </div>
 
-    <div class="route-meta">
-        <span class="route-meta__item">@Localizer["DepartureDateSummaryLabel"]: @Model.DepartureDate.ToString("d")</span>
+    <nav class="day-strip" aria-label="@Localizer["DayStripLabel"]">
+        @if (Model.PreviousDate is { } previousNav)
+        {
+            <a class="day-strip__nav"
+               asp-controller="Journeys" asp-action="Index"
+               asp-route-originId="@Model.OriginId"
+               asp-route-originName="@Model.OriginName"
+               asp-route-destinationId="@Model.DestinationId"
+               asp-route-destinationName="@Model.DestinationName"
+               asp-route-departureDate="@previousNav.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)"
+               aria-label="@Localizer["PreviousDayLabel"]">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+        }
+        else
+        {
+            <span class="day-strip__nav is-disabled" aria-disabled="true" title="@Localizer["ValidationPastDate"]">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </span>
+        }
+
+        <div class="day-strip__days">
+            @if (Model.PreviousDate is { } prevDay)
+            {
+                <a class="day-strip__day"
+                   asp-controller="Journeys" asp-action="Index"
+                   asp-route-originId="@Model.OriginId"
+                   asp-route-originName="@Model.OriginName"
+                   asp-route-destinationId="@Model.DestinationId"
+                   asp-route-destinationName="@Model.DestinationName"
+                   asp-route-departureDate="@prevDay.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">
+                    <span class="day-strip__weekday">@WeekdayLabel(prevDay)</span>
+                    <span class="day-strip__date">@DayLabel(prevDay)</span>
+                </a>
+            }
+            else
+            {
+                <span class="day-strip__day is-placeholder" aria-hidden="true">
+                    <span class="day-strip__weekday">—</span>
+                    <span class="day-strip__date">—</span>
+                </span>
+            }
+
+            <span class="day-strip__day is-active" aria-current="date">
+                <span class="day-strip__weekday">@WeekdayLabel(Model.DepartureDate)</span>
+                <span class="day-strip__date">@DayLabel(Model.DepartureDate)</span>
+                @if (!Model.HasLoadError)
+                {
+                    <span class="day-strip__meta">@Model.Journeys.Count @Localizer["JourneysCountSuffix"]</span>
+                }
+            </span>
+
+            <a class="day-strip__day"
+               asp-controller="Journeys" asp-action="Index"
+               asp-route-originId="@Model.OriginId"
+               asp-route-originName="@Model.OriginName"
+               asp-route-destinationId="@Model.DestinationId"
+               asp-route-destinationName="@Model.DestinationName"
+               asp-route-departureDate="@Model.NextDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">
+                <span class="day-strip__weekday">@WeekdayLabel(Model.NextDate)</span>
+                <span class="day-strip__date">@DayLabel(Model.NextDate)</span>
+            </a>
+        </div>
+
+        <a class="day-strip__nav"
+           asp-controller="Journeys" asp-action="Index"
+           asp-route-originId="@Model.OriginId"
+           asp-route-originName="@Model.OriginName"
+           asp-route-destinationId="@Model.DestinationId"
+           asp-route-destinationName="@Model.DestinationName"
+           asp-route-departureDate="@Model.NextDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)"
+           aria-label="@Localizer["NextDayLabel"]">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </a>
+    </nav>
+</section>
+
+@if (Model.HasLoadError)
+{
+    <section class="state-panel state-panel--error" role="alert">
+        <h2>@Localizer["JourneysLoadErrorTitle"]</h2>
+        <p>@Localizer["JourneysLoadErrorBody"]</p>
+    </section>
+}
+else if (Model.Journeys.Count == 0)
+{
+    <section class="state-panel">
+        <h2>@Localizer["NoJourneysFoundTitle"]</h2>
+        <p>@Localizer["NoJourneysFoundBody"]</p>
+    </section>
+}
+else
+{
+    var sortOptions = new (JourneySortOrder Value, string Label)[]
+    {
+        (JourneySortOrder.DepartureAscending, Localizer["SortDepartureAscending"]),
+        (JourneySortOrder.DepartureDescending, Localizer["SortDepartureDescending"]),
+        (JourneySortOrder.PriceAscending, Localizer["SortPriceAscending"]),
+        (JourneySortOrder.PriceDescending, Localizer["SortPriceDescending"]),
+    };
+    // Sıralama servis katmanında yapılıyor sadece placeholder için kullanılıyor.
+    var defaultSortLabel = sortOptions[0].Label;
+
+    var timeBuckets = new (string Range, string Label, int Count)[]
+    {
+        ("0-6", Localizer["TimeFilterNight"], Model.Journeys.Count(j => j.Departure.Hour < 6)),
+        ("6-12", Localizer["TimeFilterMorning"], Model.Journeys.Count(j => j.Departure.Hour is >= 6 and < 12)),
+        ("12-18", Localizer["TimeFilterAfternoon"], Model.Journeys.Count(j => j.Departure.Hour is >= 12 and < 18)),
+        ("18-24", Localizer["TimeFilterEvening"], Model.Journeys.Count(j => j.Departure.Hour >= 18)),
+    };
+    var busTypeCounts = Model.Journeys
+        .Where(j => !string.IsNullOrWhiteSpace(j.BusType))
+        .GroupBy(j => j.BusType)
+        .Select(g => (BusType: g.Key, Count: g.Count()))
+        .OrderByDescending(g => g.Count)
+        .ToList();
+
+    <div class="results-toolbar">
+    <div class="sort-bar">
+        <input type="hidden" data-sort-value value="@JourneySortOrder.DepartureAscending" />
+
+        <div class="sort-bar__field" data-sort-menu>
+            <span class="sort-bar__label" id="journeySortLabel">@Localizer["SortLabel"]</span>
+            <div class="sort-bar__control">
+                <svg class="sort-bar__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M4 6h10M4 12h16M4 18h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <button type="button"
+                        class="sort-bar__trigger"
+                        id="journeySort"
+                        data-sort-trigger
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                        aria-controls="journeySortList"
+                        aria-labelledby="journeySortLabel journeySort">
+                    <span class="sort-bar__value" data-sort-label>@defaultSortLabel</span>
+                    <svg class="sort-bar__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+
+            <ul class="sort-bar__panel"
+                id="journeySortList"
+                role="listbox"
+                data-sort-panel
+                aria-labelledby="journeySortLabel"
+                hidden>
+                @foreach (var option in sortOptions)
+                {
+                    var isSelected = option == sortOptions[0];
+                    <li role="presentation">
+                        <button type="button"
+                                class="sort-bar__option @(isSelected ? "is-selected" : null)"
+                                role="option"
+                                data-sort-option="@option.Value"
+                                aria-selected="@(isSelected ? "true" : "false")"
+                                tabindex="@(isSelected ? 0 : -1)">
+                            <span class="sort-bar__option-mark" aria-hidden="true">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                    <path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                            <span>@option.Label</span>
+                        </button>
+                    </li>
+                }
+            </ul>
+        </div>
     </div>
 
-    <a class="btn btn-secondary" asp-controller="Home" asp-action="Index">@Localizer["BackToSearch"]</a>
-</section>
+    <div class="filters-bar" data-journey-filters>
+        <div class="filters-bar__field" data-filters-menu>
+            <button type="button"
+                    class="filters-bar__trigger"
+                    data-filters-trigger
+                    aria-haspopup="dialog"
+                    aria-expanded="false"
+                    aria-controls="journeyFiltersPanel">
+                <svg class="filters-bar__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+                <span class="filters-bar__text">
+                    <span class="filters-bar__label">@Localizer["FiltersTitle"]</span>
+                    <span class="filters-bar__value" data-filters-summary data-active-label="@Localizer["FiltersActiveLabel"]">@Localizer["FiltersAllLabel"]</span>
+                </span>
+                <span class="filters-bar__badge" data-filters-badge hidden>0</span>
+            </button>
+
+            <div class="filters-bar__backdrop" data-filters-backdrop hidden></div>
+
+            <div class="filters-bar__panel" id="journeyFiltersPanel" data-filters-panel hidden>
+                <div class="filters-bar__panel-header">
+                    <span class="filters-bar__panel-title">@Localizer["FiltersTitle"]</span>
+                    <button type="button" class="filters-bar__close" data-filters-close aria-label="@Localizer["CloseFiltersLabel"]">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="filters-bar__panel-body">
+                    <fieldset class="results-filters__group">
+                        <legend>@Localizer["TimeFilterLabel"]</legend>
+                        @foreach (var bucket in timeBuckets)
+                        {
+                            <label class="checkbox@(bucket.Count == 0 ? " is-disabled" : null)">
+                                <input type="checkbox" data-filter-time="@bucket.Range" disabled="@(bucket.Count == 0)" />
+                                <span class="checkbox__box" aria-hidden="true">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                        <path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </span>
+                                <span class="checkbox__label">@bucket.Label</span>
+                                <span class="checkbox__count">@bucket.Count</span>
+                            </label>
+                        }
+                    </fieldset>
+
+                    <fieldset class="results-filters__group">
+                        <legend>@Localizer["BusTypeFilterLabel"]</legend>
+                        @foreach (var busType in busTypeCounts)
+                        {
+                            <label class="checkbox">
+                                <input type="checkbox" data-filter-bus-type="@busType.BusType" />
+                                <span class="checkbox__box" aria-hidden="true">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                        <path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </span>
+                                <span class="checkbox__label">@busType.BusType</span>
+                                <span class="checkbox__count">@busType.Count</span>
+                            </label>
+                        }
+                    </fieldset>
+
+                    <button type="button" class="filters-bar__reset" data-filters-reset hidden>
+                        @Localizer["ClearFiltersButton"]
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <ul class="journey-list">
+        @foreach (var journey in Model.Journeys)
+        {
+            <li class="journey-card"
+                data-departure-hour="@journey.Departure.Hour"
+                data-bus-type="@journey.BusType"
+                data-departure-ms="@(new DateTimeOffset(DateTime.SpecifyKind(journey.Departure, DateTimeKind.Utc)).ToUnixTimeMilliseconds())"
+                data-price="@journey.PriceAmount.ToString(CultureInfo.InvariantCulture)">
+                <div class="journey-card__partner-block">
+                    <img class="journey-card__logo" src="@journey.PartnerLogoUrl" alt="" loading="lazy"
+                         onerror="this.hidden=true" />
+                    <span class="journey-card__partner">@journey.PartnerName</span>
+                    @if (journey.Details.PartnerRating is { } partnerRating)
+                    {
+                        var ratingPercent = Math.Clamp(partnerRating / 10m * 100m, 0m, 100m);
+                        <span class="rating rating--compact"
+                              title="@Localizer["PartnerRatingLabel"]: @partnerRating.ToString("0.0") / 10">
+                            <span class="rating__stars" aria-hidden="true">
+                                <span class="rating__stars-fill" style="width: @ratingPercent.ToString("0.#", CultureInfo.InvariantCulture)%"></span>
+                            </span>
+                            <span class="rating__value">
+                                <span class="sr-only">@Localizer["PartnerRatingLabel"]: </span>@partnerRating.ToString("0.0")
+                            </span>
+                        </span>
+                    }
+                </div>
+
+                <div class="journey-card__time">
+                    <span class="journey-card__clock">@journey.Departure.ToString("HH:mm")</span>
+                    <span class="journey-card__duration">
+                        <span aria-hidden="true">@journey.Duration.ToString(@"h\:mm")</span>
+                        <span class="sr-only">@Localizer["DurationLabel"]: @journey.Duration.ToString(@"h\:mm")</span>
+                    </span>
+                    <span class="journey-card__clock">@journey.Arrival.ToString("HH:mm")</span>
+                    @{
+                        var journeyDepartureDay = DateOnly.FromDateTime(journey.Departure);
+                        var isOvernightDeparture = journeyDepartureDay > Model.DepartureDate;
+                    }
+                    @if (isOvernightDeparture)
+                    {
+                        var fromWeekday = culture.TextInfo.ToTitleCase(Model.DepartureDate.ToString("dddd", culture));
+                        var toWeekday = culture.TextInfo.ToTitleCase(journeyDepartureDay.ToString("dddd", culture));
+                        <span class="journey-card__overnight">
+                            @Localizer["OvernightBridgeLabel", fromWeekday, toWeekday]
+                        </span>
+                    }
+                </div>
+
+                <div class="journey-card__body">
+                    <div class="journey-card__route">
+                        <span>@journey.OriginStopName</span>
+                        <svg class="journey-card__bus" width="28" height="14" viewBox="0 0 44 22" fill="none" aria-hidden="true">
+                            <path d="M2 11h5M9 11h3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.35"/>
+                            <rect x="14" y="4" width="20" height="11" rx="2.2" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M34 8.5h3.2l2.3 3.2V15H34V8.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                            <path d="M17 7.2h3.5M22.5 7.2h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.45"/>
+                            <circle cx="19" cy="16.5" r="2" stroke="currentColor" stroke-width="1.4"/>
+                            <circle cx="30.5" cy="16.5" r="2" stroke="currentColor" stroke-width="1.4"/>
+                        </svg>
+                        <span>@journey.DestinationStopName</span>
+                    </div>
+                    <div class="journey-card__badges">
+                        @if (!string.IsNullOrWhiteSpace(journey.BusType))
+                        {
+                            <span class="tag journey-card__bus-type">@journey.BusType</span>
+                        }
+                        @foreach (var feature in journey.Features)
+                        {
+                            <span class="tag tag--muted">
+                                <img class="journey-card__feature-icon" src="@feature.IconUrl" alt="" loading="lazy"
+                                     onerror="this.hidden=true" />
+                                @feature.Name
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <div class="journey-card__price">
+                    <span class="journey-card__amount">@journey.PriceAmount.ToString("N2") @journey.Currency</span>
+                    <a class="btn btn-primary" href="@journey.ObiletUrl" target="_blank" rel="noopener noreferrer">
+                        @Localizer["ViewOnObiletButton"]
+                    </a>
+                </div>
+
+                <span class="journey-card__seats">
+                    @journey.AvailableSeats @Localizer["AvailableSeatsSuffix"]
+                </span>
+
+                <details class="journey-card__disclosure">
+                    <summary class="journey-card__disclosure-summary">@Localizer["DetailsLabel"]</summary>
+                    <div class="journey-card__disclosure-body">
+                        <dl class="journey-card__detail-list">
+                            @if (journey.Details.CancellationOffsetHours is { } cancellationHours)
+                            {
+                                <div class="journey-card__detail-item">
+                                    <dt>@Localizer["CancellationPolicyLabel"]</dt>
+                                    <dd>@Localizer["CancellationPolicyValue", cancellationHours]</dd>
+                                </div>
+                            }
+                            <div class="journey-card__detail-item">
+                                <dt>@Localizer["GovIdRequiredLabel"]</dt>
+                                <dd>@(journey.Details.GovIdRequired ? Localizer["GovIdRequiredYes"] : Localizer["GovIdRequiredNo"])</dd>
+                            </div>
+                            <div class="journey-card__detail-item">
+                                <dt>@Localizer["SeatingPolicyLabel"]</dt>
+                                <dd>@(journey.Details.MixedGendersAllowed ? Localizer["SeatingPolicyMixed"] : Localizer["SeatingPolicySeparate"])</dd>
+                            </div>
+                        </dl>
+
+                        @if (!string.IsNullOrWhiteSpace(journey.Details.Description))
+                        {
+                            <p class="journey-card__note">@journey.Details.Description</p>
+                        }
+                    </div>
+                </details>
+            </li>
+        }
+    </ul>
+
+    <p class="state-panel" data-filters-empty hidden>@Localizer["FiltersNoMatchBody"]</p>
+}
+
+@section Scripts {
+    <script src="~/js/sort-menu.js" asp-append-version="true"></script>
+    <script src="~/js/journey-filters.js" asp-append-version="true"></script>
+}
