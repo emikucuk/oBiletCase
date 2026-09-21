@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Localization;
 using oBiletCase.Application;
 using oBiletCase.Infrastructure;
 using oBiletCase.Web.AppUser;
+using oBiletCase.Web.ErrorHandling;
 using oBiletCase.Web.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAppUserContext, AppUserContext>();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
