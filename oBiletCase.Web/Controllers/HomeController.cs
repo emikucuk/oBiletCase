@@ -1,9 +1,13 @@
 using System.Diagnostics;
+using System.Globalization;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
 using oBiletCase.Application.Journeys;
+using oBiletCase.Application.Locations;
 using oBiletCase.Web;
+using oBiletCase.Web.AppUser;
 using oBiletCase.Web.Models;
 using oBiletCase.Web.Models.Journeys;
 
@@ -12,14 +16,35 @@ namespace oBiletCase.Web.Controllers;
 [ApiExplorerSettings(IgnoreApi = true)]
 public sealed class HomeController(
     IValidator<JourneySearchCriteria> journeySearchValidator,
-    IStringLocalizer<SharedResource> localizer) : Controller
+    IBusLocationService busLocationService,
+    IAppUserContext appUserContext,
+    IStringLocalizer<SharedResource> localizer,
+    ILogger<HomeController> logger) : Controller
 {
-    public IActionResult Index(bool invalidSearch = false)
+    public async Task<IActionResult> Index(bool invalidSearch = false, CancellationToken cancellationToken = default)
     {
         var model = new JourneySearchViewModel
         {
             DepartureDate = DateOnly.FromDateTime(DateTime.Today.AddDays(1)),
         };
+
+        try
+        {
+            var defaultLocations = await busLocationService.GetLocationsAsync(
+                appUserContext.AppUserId, query: null, CultureInfo.CurrentUICulture.Name, cancellationToken);
+
+            if (defaultLocations.Count >= 2)
+            {
+                model.OriginId = defaultLocations[0].Id;
+                model.OriginName = defaultLocations[0].Name;
+                model.DestinationId = defaultLocations[1].Id;
+                model.DestinationName = defaultLocations[1].Name;
+            }
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or HttpRequestException or TaskCanceledException)
+        {
+            logger.LogError(ex, "Varsayılan origin/destination için lokasyon listesi alınırken hata oluştu.");
+        }
 
         ViewData["IsFreshSearch"] = true;
         ViewData["ShowInvalidSearchNotice"] = invalidSearch;
