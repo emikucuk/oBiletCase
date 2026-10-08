@@ -19,7 +19,7 @@ oBiletCase.Tests          -> tüm katmanlar
 - **Web** — ASP.NET Core MVC composition root. Controller'lar sadece HTTP orkestrasyonu yapar: bir Application akışını çağırır, sonucu bir View veya HTTP yanıtına çevirir. İş kuralı veya dış API'ye özgü kod içermez.
 - **Application** — feature bazlı organize edilmiştir (`Journeys`, `Locations`, `Sessions`), katman bazlı değil. Her feature kendi DTO'sunu, servis arayüzünü ve validator'ını taşır. HTTP/JSON detaylarından tamamen habersizdir.
 - **Domain** — bilinçli olarak neredeyse boş. Bu uygulamanın kendine ait, API'den bağımsız bir iş kuralı (örneğin bir rezervasyon/iptal kuralı) yok; olan tek kurallar (aynı lokasyon seçilemez, geçmiş tarih seçilemez) zaten birer *giriş validasyonu* ve `Application` katmanında modellenmiş durumda. Katmanı doldurmak için yapay domain sınıfları eklenmedi.
-- **Infrastructure** — sağlayıcı API'siyle ilgili her şeyin yaşadığı yer: `IHttpClientFactory` yapılandırması, session/device bilgisinin isteklere eklenmesi, request/response DTO'ları, hata/timeout yönetimi ve `Application` sözleşmelerine mapping. `Application` ve `Domain` bu katmanın hiçbir somut tipini bilmez (Dependency Inversion) — `Infrastructure`, `Application`'da tanımlı arayüzleri (`IBusLocationService`, `IBusJourneyService`, `IObiletSessionAccessor`) implemente eder.
+- **Infrastructure** — sağlayıcı API'siyle ilgili her şeyin yaşadığı yer: `IHttpClientFactory` yapılandırması, session/device bilgisinin isteklere eklenmesi, request/response DTO'ları, hata/timeout yönetimi ve `Application` sözleşmelerine mapping. `Application` ve `Domain` bu katmanın hiçbir somut tipini bilmez (Dependency Inversion) — `Infrastructure`, `Application`'da tanımlı arayüzleri (`IBusLocationService`, `IBusJourneyService`, `IObiletSessionAccessor`) implemente eder. Veritabanı erişimi (EF Core `AppDbContext`, migration'lar, çeviri tabloları) da burada (`Persistence/`, `Localization/`) yaşar; çeviri tabloları iş kavramı değil teknik veri olduğu için Domain'e konmadı.
 - **Tests** — xUnit + Moq. Gerçek sağlayıcı API'sine bağımlı test yoktur; servis testleri sağlayıcı istemcisini (`IObiletApiClient`) mock'lar, controller testleri servisleri mock'lar.
 
 ## Teknoloji tercihleri
@@ -28,7 +28,8 @@ oBiletCase.Tests          -> tüm katmanlar
 - **FluentValidation** — sunucu tarafı validasyon (aynı lokasyon, geçmiş tarih), hem arama formunda hem sonuç sayfasında (bookmarklanmış/manipüle edilmiş bir URL'ye karşı ikinci bir savunma katmanı olarak) çalışır.
 - **Vanilla CSS/JS** — Bootstrap, Tailwind veya jQuery kullanılmadı. Lokasyon autocomplete'i, tarih seçici, sıralama/filtreleme dropdown'ları ve mobilde drawer'a dönüşen filtre paneli sıfırdan yazıldı. Bunun nedeni framework eksikliği değil; bu ölçekte bir arayüz için genel amaçlı bir CSS/JS kütüphanesinin getirdiği boyut ve soyutlama maliyetinin karşılığını vermemesi.
 - **`IMemoryCache`** — hem sağlayıcı session'ı hem de filtresiz lokasyon listesi (bkz. Performans notu) için. Uygulama tek instance çalıştığı sürece dağıtık bir cache'e (Redis vb.) gerek yok; bunu eklemek bu ölçekte gerçek bir problemi çözmeden bir dış bağımlılık eklemek olurdu.
-- **xUnit + Moq** — servis ve controller testleri.
+- **EF Core + PostgreSQL** — lokalizasyon kaynağı. Arayüz metinleri (eski `.resx` içeriği) `LocalizationResources`, sağlayıcının her dilde Türkçe döndürdüğü sefer özellik adları (`features[].name`, canlı API'de tr-TR/en-EN karşılaştırmasıyla doğrulandı) ise `FeatureTranslations` tablosunda tutulur. Başlangıç kayıtları migration seed'i olduğundan veritabanı sıfırdan kurulsa bile geri gelir. Özel bir `IStringLocalizerFactory` tabloyu bellekte cache'ler, bu yüzden view/controller'lardaki `IStringLocalizer` kullanımı değişmedi. Tabloda Türkçe kaydı olmayan yeni bir özellik görüldüğünde Türkçe adıyla otomatik eklenir; İngilizce karşılığı girilene kadar Türkçe ad gösterilir.
+- **xUnit + Moq** — servis ve controller testleri. Veritabanına erişen sınıflar (`FeatureTranslationStore`, veritabanı destekli localizer) için test yok; test projesi hiçbir veritabanı sağlayıcısına bağımlı değil.
 - **Swashbuckle (Swagger)** — uygulamanın tek gerçek JSON API sözleşmesi olan lokasyon arama uç noktası için. Sayfa render eden controller'lar (Home, Journeys, Culture) bilinçli olarak Swagger'ın dışında tutulur; onlar bir API sözleşmesi değil, HTML sayfası döner.
 - **Docker** — çok aşamalı bir `Dockerfile` (SDK ile build, ASP.NET runtime ile çalıştırma).
 - **GitHub Actions** — push/PR'da restore → build → test → Docker image build. Bir deploy hedefi (sunucu, registry, bulut hesabı) tanımlı olmadığı için pipeline CI ile sınırlı tutuldu; CD, gerçek bir ortam bulunmadığı için eklenmedi.
@@ -41,7 +42,7 @@ oBiletCase.Tests          -> tüm katmanlar
 - Son aramanın (kalkış, varış, tarih) `localStorage` ile hatırlanması ve bir sonraki ziyarette form alanlarının otomatik doldurulması; ilk ziyarette ise alanlar sağlayıcının döndürdüğü varsayılan lokasyon sıralamasına göre doldurulur.
 - Sefer sonuçlarının kalkış saatine göre sıralı listelenmesi; kullanıcı tarafında (sayfa yenilenmeden, saf istemci tarafı JS ile) kalkış/fiyat bazlı yeniden sıralama ve saat aralığı/koltuk düzeni filtreleri.
 - Her sefer kartında firma logosu, özellik ikonları, 5 yıldızlı firma puanı; genişletildiğinde iptal koşulu, kimlik zorunluluğu, oturma düzeni gibi ek bilgiler.
-- Türkçe/İngilizce arayüz; tüm kullanıcıya görünen metinler merkezi kaynaklardan yönetilir.
+- Türkçe/İngilizce arayüz; tüm kullanıcıya görünen metinler ve sefer özellik adları veritabanındaki çeviri tablolarından yönetilir.
 - Merkezi hata yönetimi: beklenmeyen hatalar kullanıcıya teknik detay sızdırmadan genel bir hata sayfasına (HTML istekleri) veya JSON hata yanıtına (AJAX istekleri) yönlendirilir; tüm teknik detaylar `ILogger` ile loglanır, hiçbir secret/session değeri loglanmaz.
 
 ### Performans notu
@@ -63,31 +64,45 @@ Bu projenin birçok yerinde yapay zekadan yararlandık ve bu süreç, hazırlad�
 
 ## Çalıştırma
 
-Gereksinim: .NET 10 SDK.
+Gereksinim: .NET 10 SDK, Docker.
+
+`.env.example` dosyasını `.env` olarak kopyalayıp `OBILET_API_CLIENT_TOKEN` ve `POSTGRES_PASSWORD` değerlerini doldurun (`.env` depoya eklenmez). Ardından veritabanını başlatıp secret'ları tanımlayın:
+
+```
+docker compose up -d db
+dotnet user-secrets set "oBiletAPI:ApiClientToken" "<token>" --project oBiletCase.Web
+dotnet user-secrets set "ConnectionStrings:oBiletCaseDb" "Host=localhost;Port=5433;Database=obiletcase;Username=obiletcase;Password=<POSTGRES_PASSWORD>" --project oBiletCase.Web
+```
 
 ```
 dotnet restore
+dotnet tool restore
 dotnet build oBiletCase.slnx
 dotnet test oBiletCase.slnx
 dotnet run --project oBiletCase.Web
 ```
 
-Sağlayıcı API'sine erişim için gereken `ApiClientToken` bir secret'tır ve depoya eklenmez; `appsettings.json` içinde bu alan her zaman boş bırakılır. Yerel geliştirmede `dotnet user-secrets` ile tanımlanır:
+`ApiClientToken` ve connection string secret'tır; `appsettings.json` içinde bulunmazlar. `oBiletAPI:BaseUrl` gizli olmadığı için `appsettings.json` içinde tanımlıdır. PostgreSQL container'ı host'ta, yerel bir PostgreSQL kurulumuyla çakışmaması için 5433 portundan yayınlanır; veri `obiletcase-pgdata` volume'ünde tutulur ve yalnızca `docker compose down -v` ile silinir.
+
+Development ortamında bekleyen migration'lar uygulama açılışında otomatik uygulanır. Diğer ortamlarda elle uygulanır:
 
 ```
-dotnet user-secrets set "oBiletAPI:ApiClientToken" "<token>" --project oBiletCase.Web
+dotnet ef database update --project oBiletCase.Infrastructure --startup-project oBiletCase.Web
 ```
 
-`oBiletAPI:BaseUrl` gizli olmadığı için `appsettings.json` içinde tanımlıdır.
+Yeni bir migration (örneğin seed çevirilerine ekleme) için:
+
+```
+dotnet ef migrations add <Ad> --project oBiletCase.Infrastructure --startup-project oBiletCase.Web --output-dir Persistence/Migrations
+```
 
 ### Docker
 
 ```
-docker build -t obiletcase-web .
-docker run --rm -p 8080:8080 -e "oBiletAPI__ApiClientToken=<token>" obiletcase-web
+docker compose up -d --build
 ```
 
-Uygulama `http://localhost:8080` üzerinde ayağa kalkar. `oBiletAPI:BaseUrl` gibi gizli olmayan config değerleri de aynı `__` kuralıyla ortam değişkeni olarak override edilebilir.
+Uygulama `http://localhost:8080` üzerinde ayağa kalkar. `web` servisi Production modunda çalıştığı için migration'ları otomatik uygulamaz; ilk kurulumda yukarıdaki `dotnet ef database update` komutunu host'tan (5433 portundaki aynı veritabanına) çalıştırın. `oBiletAPI:BaseUrl` gibi gizli olmayan config değerleri de aynı `__` kuralıyla ortam değişkeni olarak override edilebilir.
 
 ### Swagger
 

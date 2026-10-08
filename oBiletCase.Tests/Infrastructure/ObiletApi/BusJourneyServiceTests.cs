@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using oBiletCase.Application.Journeys;
 using oBiletCase.Application.Sessions;
+using oBiletCase.Infrastructure.Localization;
 using oBiletCase.Infrastructure.oBiletAPI;
 using oBiletCase.Infrastructure.oBiletAPI.Contracts;
 
@@ -79,6 +80,22 @@ public class BusJourneyServiceTests
     }
 
     [Fact]
+    public async Task GetJourneysAsync_ozellik_adlarini_istenen_dildeki_ceviriyle_esler()
+    {
+        var dto = CreateJourneyDto(id: 1, features: [new JourneyFeatureDto { Id = 10, Name = "Kablosuz Internet (WiFi)" }]);
+        var featureTranslations = new Mock<IFeatureTranslationStore>();
+        featureTranslations
+            .Setup(s => s.GetNamesAsync(It.IsAny<IReadOnlyCollection<JourneyFeatureDto>>(), "en-US", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Dictionary<int, string> { [10] = "Wireless internet (WiFi)" });
+
+        var service = BuildService(featureTranslations.Object, dto);
+
+        var journey = (await service.GetJourneysAsync("user-1", AnyCriteria, "en-US", CancellationToken.None)).Single();
+
+        Assert.Contains(journey.Features, f => f is { Id: 10, Name: "Wireless internet (WiFi)" });
+    }
+
+    [Fact]
     public async Task GetJourneysAsync_bos_sonuc_donerse_bos_liste_doner()
     {
         var service = BuildService();
@@ -145,23 +162,41 @@ public class BusJourneyServiceTests
         },
     };
 
-    private static BusJourneyService BuildService(params JourneyDto[] dtos)
+    private static BusJourneyService BuildService(params JourneyDto[] dtos) =>
+        BuildService(PassThroughFeatureTranslations(), dtos);
+
+    private static BusJourneyService BuildService(IFeatureTranslationStore featureTranslations, params JourneyDto[] dtos)
     {
         var apiClient = new Mock<IObiletApiClient>();
         apiClient
             .Setup(c => c.GetBusJourneysAsync(Session, It.IsAny<JourneySearchCriteria>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ObiletApiEnvelope<List<JourneyDto>> { Status = "Success", Data = dtos.ToList() });
 
-        return BuildServiceWithApiClient(apiClient.Object);
+        return BuildServiceWithApiClient(apiClient.Object, featureTranslations);
     }
 
-    private static BusJourneyService BuildServiceWithApiClient(IObiletApiClient apiClient)
+    private static BusJourneyService BuildServiceWithApiClient(
+        IObiletApiClient apiClient, IFeatureTranslationStore? featureTranslations = null)
     {
         var sessionAccessor = new Mock<IObiletSessionAccessor>();
         sessionAccessor
             .Setup(s => s.GetOrCreateSessionAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Session);
 
-        return new BusJourneyService(apiClient, sessionAccessor.Object, NullLogger<BusJourneyService>.Instance);
+        return new BusJourneyService(
+            apiClient,
+            sessionAccessor.Object,
+            featureTranslations ?? PassThroughFeatureTranslations(),
+            NullLogger<BusJourneyService>.Instance);
+    }
+
+    private static IFeatureTranslationStore PassThroughFeatureTranslations()
+    {
+        var store = new Mock<IFeatureTranslationStore>();
+        store
+            .Setup(s => s.GetNamesAsync(It.IsAny<IReadOnlyCollection<JourneyFeatureDto>>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IReadOnlyCollection<JourneyFeatureDto> features, string _, CancellationToken _) =>
+                features.DistinctBy(f => f.Id).ToDictionary(f => f.Id, f => f.Name));
+        return store.Object;
     }
 }

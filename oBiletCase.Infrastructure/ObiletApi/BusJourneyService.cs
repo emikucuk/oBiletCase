@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using oBiletCase.Application.Journeys;
 using oBiletCase.Application.Sessions;
+using oBiletCase.Infrastructure.Localization;
 using oBiletCase.Infrastructure.oBiletAPI.Contracts;
 
 namespace oBiletCase.Infrastructure.oBiletAPI;
@@ -9,13 +10,18 @@ internal sealed class BusJourneyService : IBusJourneyService
 {
     private readonly IObiletApiClient _apiClient;
     private readonly IObiletSessionAccessor _sessionAccessor;
+    private readonly IFeatureTranslationStore _featureTranslations;
     private readonly ILogger<BusJourneyService> _logger;
 
     public BusJourneyService(
-        IObiletApiClient apiClient, IObiletSessionAccessor sessionAccessor, ILogger<BusJourneyService> logger)
+        IObiletApiClient apiClient,
+        IObiletSessionAccessor sessionAccessor,
+        IFeatureTranslationStore featureTranslations,
+        ILogger<BusJourneyService> logger)
     {
         _apiClient = apiClient;
         _sessionAccessor = sessionAccessor;
+        _featureTranslations = featureTranslations;
         _logger = logger;
     }
 
@@ -36,6 +42,9 @@ internal sealed class BusJourneyService : IBusJourneyService
             throw new InvalidOperationException("Obilet sefer listesi alınamadı.");
         }
 
+        var featureNames = await _featureTranslations.GetNamesAsync(
+            envelope.Data.SelectMany(dto => dto.Features).ToList(), language, cancellationToken);
+
         return envelope.Data
             .Select(dto => new Journey(
                 dto.Id,
@@ -50,7 +59,7 @@ internal sealed class BusJourneyService : IBusJourneyService
                 dto.AvailableSeats,
                 dto.Journey.InternetPrice,
                 dto.Journey.Currency,
-                dto.Features.Select(f => new JourneyFeature(f.Id, f.Name)).ToList(),
+                dto.Features.Select(f => new JourneyFeature(f.Id, featureNames.GetValueOrDefault(f.Id, f.Name))).ToList(),
                 new JourneyDetails(
                     string.IsNullOrWhiteSpace(dto.Journey.Description) ? null : dto.Journey.Description,
                     dto.CancellationOffsetHours,

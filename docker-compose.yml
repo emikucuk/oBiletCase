@@ -1,9 +1,35 @@
 services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: obiletcase
+      POSTGRES_USER: obiletcase
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the environment or a .env file}
+    ports:
+      # Exposed so the app can also run from the host (dotnet run) against this database.
+      # Host port 5433 avoids clashing with a locally installed PostgreSQL on 5432.
+      - "5433:5432"
+    volumes:
+      # Named volume keeps the data when the container is removed; only `docker compose down -v` deletes it.
+      - obiletcase-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U obiletcase -d obiletcase"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   web:
     build: .
     ports:
       - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       # ASP.NET Core double-underscore binds to oBiletAPI:ApiClientToken
       oBiletAPI__ApiClientToken: ${OBILET_API_CLIENT_TOKEN:?Set OBILET_API_CLIENT_TOKEN in the environment or a .env file}
+      ConnectionStrings__oBiletCaseDb: Host=db;Port=5432;Database=obiletcase;Username=obiletcase;Password=${POSTGRES_PASSWORD}
+
+volumes:
+  obiletcase-pgdata:

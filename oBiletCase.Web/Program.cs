@@ -10,7 +10,7 @@ using oBiletCase.Web.Localization;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+builder.Services.AddLocalization();
 builder.Services.AddControllersWithViews()
     .AddViewLocalization()
     .AddDataAnnotationsLocalization();
@@ -47,6 +47,12 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 });
 
 var app = builder.Build();
+
+// Diğer ortamlarda migration'lar deploy adımında elle uygulanır (dotnet ef database update).
+if (app.Environment.IsDevelopment())
+{
+    await app.Services.MigrateDatabaseAsync();
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
